@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // ឧទាហរណ៍៖ កេស, គីឡូក្រាម, កំប៉ុង
+    
+            // បើ baseunit_id = null មានន័យថាវាជាខ្នាតធំគេ (Main Unit)
+            $table->foreignId('baseunit_id')->nullable()->constrained('units')->onDelete('cascade');
+            $table->string('operator')->nullable(); 
+            $table->decimal('operator_value', 15, 2)->default(1); 
+            
+            $table->string('note')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('units');
+    }
+};

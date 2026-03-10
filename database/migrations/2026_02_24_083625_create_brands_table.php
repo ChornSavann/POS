@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('brands', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // ឈ្មោះម៉ាក
+            $table->string('slug')->unique(); // សម្រាប់ធ្វើ SEO URL (ឧទាហរណ៍: /brand/apple)
+            $table->string('image')->nullable(); // រូបភាព Logo
+            $table->text('description')->nullable(); // ការពិពណ៌នា
+            $table->boolean('status')->default(true); // ស្ថានភាព (Active/Inactive)
+            $table->timestamps();
+            
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('brands');
+    }
+};

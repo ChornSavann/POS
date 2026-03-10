@@ -1,0 +1,1481 @@
+
+<style>
+        .table-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .table-card:hover {
+            transform: translateY(-8px);
+            border-color: #007bff;
+            box-shadow: 0 10px 20px rgba(0,123,255,0.15);
+        }
+        .table-card img {
+            width: 60px;
+            /* height: auto; */
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        .table-card:hover img {
+            transform: scale(1.1);
+        }
+        .table-name {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #eee;
+        }
+        .table-card.busy {
+            background-color: #fff5f5;
+            border-color: #feb2b2;
+        }
+        .table-card.busy .status-badge {
+            background-color: #feb2b2;
+            color: #c53030;
+            border-color: #feb2b2;
+        }
+        body {
+            background: #f5f7fa;
+            font-family: 'Siemreap', sans-serif;
+        }
+        .khmer {
+            font-family: 'Siemreap', sans-serif;
+        }
+        .cart-container {
+            height: 92vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        .cart-body {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .product-card {
+            transition: 0.2s;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .product-card img {
+            height: 120px;
+            object-fit: contain;
+            padding: 5px;
+        }
+        .table-card {
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+        }
+        .table-card:hover {
+            border-color: #007bff;
+            background: #f0f7ff;
+        }
+        .table-card.busy {
+            background-color: #f8d7da !important;
+            border-color: #f5c2c7 !important;
+            color: #842029;
+        }
+         .table-card.busy i {
+              color: #dc3545 !important;
+         }
+        .btn-orange {
+            background-color: #f39c12 !important;
+            color: white !important;
+            border-bottom: 4px solid #d35400;
+        }
+        .d-none {
+            display: none !important;
+        }
+        /* /// */
+        /* Header Bar Styling */
+#section-products .bg-white {
+    border-bottom: 2px solid #f8f9fa;
+    align-items: center;
+}
+
+
+
+#productSearch:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+    border-color: #007bff;
+}
+
+/* Product Card Design */
+/* ===== Product Card (STANDARD POS) ===== */
+.product-card {
+    border: 1px solid #eef0f3;
+    border-radius: 14px;
+    background: #ffffff;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+
+/* Hover / Touch feedback */
+.product-card:hover {
+    transform: translateY(-4px);
+    border-color: #0d6efd;
+    box-shadow: 0 10px 22px rgba(13,110,253,.18);
+}
+
+/* Image area */
+.product-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    padding: 10px;
+    background: #f8f9fa;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+}
+
+/* Body */
+.product-card .card-body {
+    padding: 8px 6px;
+    text-align: center;
+}
+
+/* Product name */
+.product-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #2d3436;
+    line-height: 1.25;
+    height: 2.5em;      /* max 2 lines */
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+/* Price */
+.price-tag {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #198754;     /* POS green */
+}
+
+/* Touch active */
+.product-card:active {
+    transform: scale(0.97);
+}
+
+/* Khmer font */
+.khmer {
+    font-family: 'Kantumruy Pro', 'Hanuman', sans-serif;
+}
+
+/* Product filter animation */
+.product-item {
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.product-item.hide {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+/* Grid align */
+#section-products .row {
+    align-content: flex-start;
+}
+
+
+
+
+</style>
+<style>
+    /* Section Header */
+    .khmer { font-family: 'Kantumruy Pro', sans-serif; }
+
+    /* Table Card Base */
+    .table-card {
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Icon Styling */
+    .img-wrapper img {
+        width: 60px;
+        height: auto;
+        filter: grayscale(100%);
+        opacity: 0.6;
+        transition: all 0.3s ease;
+    }
+
+    /* Status: Available */
+    .table-card:hover:not(.busy) {
+        border-color: #0d6efd;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.15);
+    }
+
+    .table-card:hover:not(.busy) .img-wrapper img {
+        filter: grayscale(0%);
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    /* Status: Busy */
+    .table-card.busy {
+        background-color: #fff5f5;
+        border-color: #feb2b2;
+        cursor: not-allowed;
+    }
+
+    .table-card.busy .img-wrapper img {
+        filter: sepia(1) saturate(5) hue-rotate(-50deg); /* Makes icon reddish */
+        opacity: 0.9;
+    }
+
+    .table-card.busy .table-name { color: #c53030; }
+
+    /* Custom Badges */
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        border-radius: 50px;
+        border: 1px solid;
+        display: inline-flex;
+        align-items: center;
+        font-weight: 600;
+    }
+
+    /* Table Name */
+    .table-name {
+        font-size: 1.1rem;
+        color: #2d3748;
+        margin-top: 10px;
+    }
+
+    /* Selected State (When clicked) */
+    .table-card.selected {
+        border-color: #0d6efd;
+        background-color: #e0e7ff;
+        ring: 3px solid #3b82f6;
+    }
+</style>
+
+<div class="container-fluid pos-layout py-2">
+
+    <div class="row g-2 h-100">
+        <div class="col-md-4 h-100">
+            <div class="cart-container shadow-sm rounded bg-white border">
+            <!-- Top Inputs -->
+            <div class="p-2 border-bottom">
+                <div class="row g-1">
+                    <!-- Table Selection -->
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-table"></i>
+                            </span>
+                            <input type="text" id="selected-table-name"
+                                   class="form-control fw-bold text-primary"
+                                   readonly placeholder="សូមជ្រើសរើសតុ">
+                        </div>
+                        <input type="hidden" id="selected-table-id" value="0">
+                    </div>
+                    <!-- Customer Selection -->
+                    <div class="col-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <select id="CustomersId" name="CustomerId" class="form-select">
+                                <option value="0">Walk-In Customer</option>
+                                @foreach (var c in ViewBag.Customers)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Barcode Scanner -->
+                    <div class="col-12">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="bi bi-upc-scan"></i>
+                            </span>
+                            <input type="text" id="barcodeScanner" class="form-control form-control-sm"
+                                   placeholder="បាញ់បាកូដនៅទីនេះ (Auto-add)..." autofocus autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Header -->
+           <div class="bg-dark text-white p-2 khmer d-flex align-items-center small">
+                <span style="width:35%"><i class="bi bi-box-seam me-1"></i>ឈ្មោះទំនិញ</span>
+                <span style="width:15%" class="text-center"><i class="bi bi-tag me-1"></i>តម្លៃ</span>
+                <span style="width:15%" class="text-center"><i class="bi bi-percent me-1"></i>បញ្ចុះតម្លៃ</span>
+                <span style="width:20%" class="text-center"><i class="bi bi-plus-slash-minus me-1"></i>ចំនួន</span>
+                <span style="width:15%" class="text-end"><i class="bi bi-cash-stack me-1"></i>សរុប</span>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart-items" class="cart-body p-2">
+                <div class="text-center text-muted mt-5">សូមជ្រើសរើសតុដើម្បីចាប់ផ្តើម</div>
+            </div>
+
+            <!-- Footer -->
+            <div class="cart-footer p-0 border-top bg-white">
+                <div class="summary-area p-2" style="background-color: #e3f2fd; font-size: 0.85rem;">
+                    <div class="row g-0">
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between pe-2 border-end border-white">
+                                <span class="khmer">ទំនិញសរុប</span>
+                                <span id="item-count-display" class="fw-bold">0 ($0.00)</span>
+                            </div>
+                            <div class="d-flex justify-content-between pe-2 border-end border-white mt-1">
+                                <span class="khmer">បញ្ចុះតម្លៃ</span>
+                                <span id="total-discount-display" class="text-primary">($0.00) $0.00</span>
+                            </div>
+                        </div>
+                        <div class="col-6 ps-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="khmer">សរុប</span>
+                                <span id="subtotal" class="fw-bold">$0.00</span>
+                            </div>
+                           <div class="d-flex justify-content-between mt-1">
+                            <span class="khmer">
+                                អាករលើតម្លៃបន្ថែម
+                                <a href="javascript:void(0)" onclick="openTaxModal()" class="text-primary ms-1"><i class="bi bi-pencil-square"></i></a>
+                            </span>
+                            <span id="vat-display" class="fw-bold">$0.00</span>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grand-total-area px-3 py-2 d-flex justify-content-between align-items-center" style="background-color: #dcedc8;">
+                    <span class="khmer fw-bold fs-6">ប្រាក់ត្រូវបង់ <i class="bi bi-chat-dots-fill small"></i></span>
+                    <h3 id="grandtotal" class="mb-0 fw-bold">$0.00</h3>
+                </div>
+
+               <div class="d-flex" style="height: 80px;">
+                    <div class="d-flex flex-column" style="width: 30%;">
+                        <button class="btn btn-warning rounded-0 border-white text-white flex-fill khmer py-1" id="btn-hold" style="background-color: #ff9800;">
+                            <i class="fa-solid fa-hand-pause me-1"></i> ពន្យារ
+                        </button>
+                        <button class="btn btn-danger rounded-0 border-white text-white flex-fill khmer py-1" id="clear-cart">
+                            <i class="fa-solid fa-trash-can me-1"></i> ទេ
+                        </button>
+                    </div>
+
+                    <div class="d-flex flex-column" style="width: 30%;">
+                        <button class="btn rounded-0 border-white text-white flex-fill khmer py-1" id="btn-order" style="background-color: #7e57c2;">
+                            <i class="fa-solid fa-utensils me-1"></i> កម្ម៉ង់
+                        </button>
+                        <button class="btn rounded-0 border-white text-white flex-fill khmer py-1" id="btn-print" style="background-color: #1a237e;">
+                            <i class="fa-solid fa-print me-1"></i> ចេញបុង
+                        </button>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <button class="btn btn-success rounded-0 h-100 w-100 khmer fs-5 fw-bold" id="btn-pay-trigger" style="background-color: #2e7d32;">
+                            <i class="fa-solid fa-money-bill-wave me-2"></i> បង់ប្រាក់
+                        </button>
+                    </div>
+               </div>
+            </div>
+        </div>
+        </div>
+        <div class="col-md-8 h-100">
+           <div id="section-tables" class="mt-2">
+                <div class="bg-white p-2 mb-3 shadow-sm rounded-3 d-flex justify-content-between align-items-center border-start border-primary border-4">
+                    <h6 class="khmer mb-0 fw-bold">
+                        <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>ជ្រើសរើសតុ
+                    </h6>
+                    <span class="badge bg-dark rounded-pill" style="font-size: 10px;">តុសរុប: @ViewBag.Tables.Count</span>
+                </div>
+
+                <div class="row g-2">
+                    @foreach (var table in ViewBag.Tables)
+                    {
+                        <div class="col-xl-2 col-lg-2 col-md-3 col-4"> <div class="table-card text-center p-2 select-table-btn @(table.Status == "Busy" ? "busy" : "")"
+                                 data-id="@table.Id"
+                                 data-name="@table.Name">
+
+                                <div class="img-wrapper mb-1">
+                                    <img src="~/Image/Logo/logo_table-removebg-preview-removebg-preview.png" alt="Table Icon" style="width: 40px;" />
+                                </div>
+
+                                <div class="fw-bold khmer table-name" style="font-size: 0.85rem;">@table.Name</div>
+
+                                <div class="mt-1">
+                                    <span class="status-badge khmer @(table.Status == "Busy" ? "text-danger border-danger" : "text-success border-success")" style="font-size: 9px; padding: 2px 6px;">
+                                        <i class="bi bi-circle-fill me-1" style="font-size: 5px;"></i>
+                                        @(table.Status == "Busy" ? "មានភ្ញៀវ" : "ទំនេរ")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+           <div id="section-products" class="d-none">
+               <div class="d-flex flex-wrap align-items-center gap-2">
+
+                    <button class="btn btn-danger btn-sm khmer px-3 shadow-sm" onclick="backToTables()">
+                        <i class="bi bi-arrow-left-circle me-1"></i> ត្រឡប់មកវិញ
+                    </button>
+
+                    <div class="d-flex gap-2 flex-wrap flex-grow-1" id="categoryFilter">
+                        <button class="btn btn-sm btn-dark active rounded-pill px-3" data-category="all">
+                            ទាំងអស់
+                        </button>
+
+                        @{
+                            var categories = ViewBag.Categories as List<ItemType>;
+                        }
+
+                        @if (categories != null && categories.Any())
+                        {
+                            foreach (var c in categories)
+                            {
+                                var hasStock = c.Products != null && c.Products.Any(p => p.CurrentStock > 0);
+                                if (hasStock)
+                                {
+                                    <button class="btn btn-sm btn-outline-dark rounded-pill px-3" data-category="@c.Id">
+                                        @c.ItemtypeName
+                                    </button>
+                                }
+                            }
+                        }
+                    </div>
+
+                    <div class="input-group shadow-sm" style="width: 250px;">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" id="productSearch" class="form-control form-control-sm border-start-0 khmer" placeholder="ស្វែងរកទំនិញ...">
+                    </div>
+               </div>
+               <div class="row g-3 overflow-auto p-1" style="height: 80vh;">
+                        @foreach (var p in Model)
+                            {
+                                <div class="col-xl-2 col-lg-3 col-md-4 col-4 product-item" data-category="@p.ItemTypeId">
+
+                                    <div class="card product-card add-to-cart" data-id="@p.Id" data-name="@p.Name" data-price="@p.Price" data-discount="@p.Discount" data-stock="@p.CurrentStock">
+                                        <img src="@p.ImagePath" onerror="this.src='/images/no-image.png'">
+                                        <div class="card-body p-2 text-center border-top">
+                                            <p class="khmer small mb-1 text-truncate fw-bold">@p.Name</p>
+                                            <span class="text-primary fw-bold">$@p.Price</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-credit-card me-2"></i> ការទូទាត់ប្រាក់
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body bg-light p-4">
+                <div class="row g-4">
+
+                    <!-- LEFT -->
+                    <div class="col-md-7">
+
+                        <!-- Total Summary -->
+                        <div class="card border-0 shadow-sm mb-3 rounded-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-semibold text-muted">សរុប ($)</span>
+                                    <h3 id="modal-subtotal" class="text-primary fw-bold mb-0">$0.00</h3>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span class="fw-semibold text-muted">សរុប (៛)</span>
+                                    <h4 id="total-riel" class="text-success fw-bold mb-0">0 ៛</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cash Dollar -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ទទួលលុយដុល្លារ</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="cash-dollar" class="form-control text-end" value="0">
+                            </div>
+                        </div>
+
+                      <!-- Payment Method -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">វិធីបង់ប្រាក់</label>
+                            <input type="hidden" id="bankAccountName" value="">
+
+                           <select id="paymentMethod" class="form-select form-select-lg">
+                                <option value="" data-bankname="CASH">💵 សាច់ប្រាក់សុទ្ធ (Cash)</option>
+                                @foreach (var c in ViewBag.Banks)
+                                {
+                                    <option value="@c.Id" data-discount="@c.DiscountRate" data-bankname="@c.BankName">
+                                        🏦 @c.BankName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Discount -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">បញ្ចុះ (%)</label>
+                                <input type="number" id="discountRate"
+                                       class="form-control form-control-lg text-end"
+                                       readonly>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold text-danger">បញ្ចុះ ($)</label>
+                                <input type="text" id="discountAmount"
+                                       class="form-control form-control-lg text-end text-danger"
+                                       readonly>
+                            </div>
+                        </div>
+
+                        <!-- Cash Riel -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ទទួលលុយរៀល</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">៛</span>
+                                <input type="number" id="cash-riel" class="form-control text-end" value="0">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Balance -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-danger">លុយអាប់</span>
+                            <h4 id="balance-dollar" class="text-danger fw-bold mb-0">$0.00</h4>
+                        </div>
+
+                        <!-- Credit -->
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="allowCredit">
+                            <label class="form-check-label fw-bold text-warning">
+                                អនុញ្ញាតឲ្យជំពាក់
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-2">
+                            <span class="fw-bold text-warning">ប្រាក់ជំពាក់</span>
+                            <h5 id="debt-amount" class="fw-bold text-warning mb-0">$0.00</h5>
+                        </div>
+
+                        <div class="mt-2">
+                            <span class="fw-bold">ស្ថានភាព:</span>
+                            <span id="payment-status" class="badge bg-secondary ms-2">—</span>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div class="col-md-5">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    @foreach (var val in new[] { 1, 5, 10, 20, 50, 100 })
+                                    {
+                                        <div class="col-6">
+                                            <button class="btn btn-outline-primary w-100 py-3 fw-bold"
+                                                    onclick="addCash(@val)">
+                                                $@val
+                                            </button>
+                                        </div>
+                                    }
+                                    <div class="col-12 mt-2">
+                                        <button class="btn btn-outline-danger w-100"
+                                                onclick="clearCash()">
+                                            <i class="bi bi-x-circle me-1"></i> សម្អាតលុយ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0">
+                <button type="button"
+                        class="btn btn-success w-100 py-3 fw-bold fs-5 rounded-4"
+                        id="confirm-payment">
+                    ✔️ យល់ព្រមបង់ប្រាក់ & បោះពុម្ព
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="taxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header py-3 bg-indigo text-white rounded-top-4" style="background-color: #6610f2;">
+                <h6 class="modal-title khmer fw-bold mb-0">
+                    <i class="bi bi-percent me-2"></i> កំណត់អត្រាអាករ (Tax)
+                </h6>
+                <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <label class="khmer fw-bold text-muted mb-2">បញ្ចូលអត្រាភាគរយ</label>
+                    <div class="input-group input-group-lg">
+                        <input type="number" id="tax-rate-input"
+                               class="form-control text-center fw-bold border-2 border-primary shadow-none"
+                               value="0" min="0" max="100"
+                               onfocus="this.select()">
+                        <span class="input-group-text bg-primary text-white border-primary">%</span>
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-secondary w-100 fw-bold rounded-3" onclick="setQuickTax(0)">0%</button>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-secondary w-100 fw-bold rounded-3" onclick="setQuickTax(5)">5%</button>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-outline-secondary w-100 fw-bold rounded-3" onclick="setQuickTax(10)">10%</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 p-3 pt-0">
+                <button type="button" class="btn btn-light w-100 khmer py-2 rounded-3 text-muted" data-bs-dismiss="modal">បោះបង់</button>
+                <button type="button" class="btn btn-primary w-100 khmer py-2 rounded-3 fw-bold" onclick="saveTaxRate()">
+                    <i class="bi bi-check-circle me-1"></i> រក្សាទុក
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+ @section Scripts {
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script>
+        let cart = [];
+        let currentTableId = 0;
+        const allProducts = @Json.Serialize(Model.Select(p => new {
+            id = p.Id,
+            name = p.Name,
+            barcode = p.barcode,
+            price = p.Price,
+            discount = p.Discount,
+            stock = p.CurrentStock
+        }));
+
+        $(document).ready(function() {
+            refreshTableUI();
+
+        $('#barcodeScanner').on('input', function() {
+             const code = $(this).val().trim();
+             if (code !== "") {
+                 const product = allProducts.find(p => p.barcode === code);
+
+                 if (product) {
+                     addItemToCartLogic(product);
+                     const Toast = Swal.mixin({
+                         toast: true,
+                         position: 'top-end',
+                         showConfirmButton: false,
+                         timer: 800
+                     });
+                     Toast.fire({ icon: 'success', title: 'បានថែម: ' + product.name });
+                     $(this).val('');
+                     $(this).focus();
+                 } else {
+                     const Toast = Swal.mixin({
+                         toast: true,
+                         position: 'top-end',
+                         showConfirmButton: false,
+                         timer: 1500
+                     });
+                     Toast.fire({
+                         icon: 'error',
+                         title: 'រកមិនឃើញបាកូដ: ' + code
+                     });
+
+                     $(this).val('');
+                     $(this).focus();
+                 }
+             }
+         });
+        $('#barcodeScanner').on('keypress', function(e) {
+            if (e.which == 13) {
+                e.preventDefault();
+                $(this).trigger('input');
+            }
+        });
+
+        $('.select-table-btn').click(async function() {
+                currentTableId = $(this).data('id');
+                const tableName = $(this).data('name');
+                const saved = localStorage.getItem('hold_pos_' + currentTableId);
+                let customerCountDisplay = "";
+                if (saved && JSON.parse(saved).length > 0) {
+                    cart = JSON.parse(saved);
+                } else {
+                    const { value: count } = await Swal.fire({
+                        title: 'ចំនួនមនុស្ស',
+                        text: `តុ: ${tableName}`,
+                        input: 'number',
+                        inputValue: 1,
+                        showCancelButton: true,
+                        confirmButtonText: 'យល់ព្រម',
+                        cancelButtonText: 'បោះបង់',
+                        inputValidator: (value) => {
+                            if (!value || value <= 0) return 'សូមបញ្ចូលចំនួនមនុស្ស!';
+                        }
+                    });
+                    if (!count) return;
+                    customerCountDisplay = ` (${count} នាក់)`;
+                    cart = [];
+                }
+                $('#selected-table-id').val(currentTableId);
+                $('#selected-table-name').val(`${tableName}${customerCountDisplay}`);
+                $('#section-tables').addClass('d-none');
+                $('#section-products').removeClass('d-none');
+                setTimeout(() => { $('#barcodeScanner').focus(); }, 500);
+                updateCart();
+            });
+
+
+
+
+       // Declare selectedCat only once globally
+        let selectedCat = 'all';
+
+        // Category filter click
+        $('#categoryFilter').on('click', 'button', function () {
+            selectedCat = $(this).data('category').toString(); // update selected category
+
+            // Update button styles
+            $('#categoryFilter button')
+                .removeClass('btn-dark active')
+                .addClass('btn-outline-dark');
+
+            $(this)
+                .removeClass('btn-outline-dark')
+                .addClass('btn-dark active');
+
+            filterProducts();
+        });
+
+
+          //Search Product
+        $('#productSearch').off('input');
+
+         // ✅ ADD safe search handler only
+            $('#productSearch').on('input', function (e) {
+                e.stopImmediatePropagation(); // 🚫 stop other handlers
+                filterProducts();
+            });
+
+
+
+        function filterProducts() {
+                const searchText = String($('#productSearch').val() || '').toLowerCase();
+
+                $('.product-item').each(function () {
+
+                    const category = String($(this).data('category') || 'all');
+
+                    const name = String(
+                        $(this).find('.product-card').data('name') || ''
+                    ).toLowerCase();
+
+                    // 🟢 GET STOCK
+                    const stock = parseFloat($(this).find('.product-card').data('stock')) || 0;
+
+                    const matchCategory = selectedCat === 'all' || category === selectedCat;
+                    const matchSearch   = !searchText || name.includes(searchText);
+                    const hasStock      = stock > 0; // ❗ only show stock > 0
+
+                    // show only when have stock
+                    $(this).toggleClass('hide', !(matchCategory && matchSearch && hasStock));
+                });
+            }
+
+
+          $('#btn-pay-trigger').click(function () {
+
+                if(currentTableId === 0){
+                    Swal.fire('សូមជ្រើសតុជាមុន!', '', 'warning');
+                    return;
+                }
+
+                if (cart.length === 0){
+                    Swal.fire('កន្ត្រកទទេ!', '', 'warning');
+                    return;
+                }
+
+                calculateFinalTotal();
+                const modalEl = document.getElementById('checkoutModal');
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modalInstance.show();
+        });
+
+        $('#btn-hold').click(function() {
+                if(currentTableId === 0 || cart.length === 0) return;
+                localStorage.setItem('hold_pos_' + currentTableId, JSON.stringify(cart));
+                $.ajax({
+                    url: '/Order/UpdateTableStatus',
+                    type: 'POST',
+                    data: { tableId: currentTableId, status: 'Busy' },
+                    success: function(res) {
+                        if(res.success) {
+                            Swal.fire({ title: 'រក្សាទុកជោគជ័យ', icon: 'success', timer: 800, showConfirmButton: false });
+                            backToTables();
+                        }
+                    }
+                });
+            });
+
+            //Clear Card
+        $('#clear-cart').click(function() {
+                Swal.fire({
+                    title: 'តើអ្នកប្រាកដទេ?',
+                    text: "រាល់ទិន្នន័យក្នុងកន្ត្រកនឹងត្រូវលុបចោល!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'បាទ/ចាស, លុបវា!',
+                    cancelButtonText: 'បោះបង់'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const tableIdToDelete = currentTableId;
+                        cart = [];
+                        localStorage.removeItem('hold_pos_' + tableIdToDelete);
+                        $.ajax({
+                            url: '/Order/UpdateTableStatus',
+                            type: 'POST',
+                            data: { tableId: tableIdToDelete, status: 'Free' },
+                            success: function(res) {
+                                updateCart();
+                                backToTables();
+                                Swal.fire('បានលុប!', 'តុត្រូវបានដោះលែងវិញ។', 'success');
+                            }
+                        });
+                    }
+                });
+            });
+
+
+         //Input Cash Dallar and Khmer
+        $(document).on('input', '#cash-dollar, #cash-riel', () => calculateFinalTotal());
+        });
+
+        function addToCartByBarcode(barcode) {
+            if (currentTableId === 0) {
+                Swal.fire('សូមជ្រើសរើសតុ!', '', 'warning');
+                return;
+            }
+            const product = allProducts.find(p => p.barcode === barcode);
+            if (product) {
+                addItemToCartLogic(product);
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 700 });
+                Toast.fire({ icon: 'success', title: product.name });
+            } else {
+                Swal.fire({ title: 'រកមិនឃើញបាកូដ!', icon: 'error', timer: 1000, showConfirmButton: false });
+            }
+        }
+
+        //Add to Card
+        $('.add-to-cart').click(function() {
+            const product = {
+                id: $(this).data('id'),
+                name: $(this).data('name'),
+                price: parseFloat($(this).data('price')) || 0,
+                discount: parseFloat($(this).data('discount')) || 0,
+                stock: parseInt($(this).data('stock')) || 0
+            };
+
+            if (!product.id) return;
+
+            // ហៅ Logic និងឆែកមើលថាជោគជ័យឬអត់
+            const isAdded = addItemToCartLogic(product);
+
+            if (isAdded) {
+                // បង្ហាញ Toast តែពេលថែមបានជោគជ័យប៉ុណ្ណោះ
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'បានថែមក្នុងកន្ត្រក: ' + product.name
+                });
+            }
+        });
+
+
+        function addItemToCartLogic(d) {
+                const existing = cart.find(x => x.id === d.id);
+                if (existing) {
+                    if (existing.qty < d.stock) {
+                        existing.qty++;
+                        updateCart();
+                        return true; // ថែមបានជោគជ័យ
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'អស់ស្តុក!',
+                            text: `ផលិតផលនេះមានត្រឹមតែ ${d.stock} ក្នុងស្តុកប៉ុណ្ណោះ`,
+                            confirmButtonColor: '#3085d6'
+                        });
+                        return false; // បរាជ័យដោយសារអស់ស្តុក
+                    }
+                } else {
+                    if (d.stock > 0) {
+                        cart.push({ id: d.id, name: d.name, price: d.price, discount: d.discount, qty: 1 });
+                        updateCart();
+                        return true; // ថែមថ្មីបានជោគជ័យ
+                    } else {
+                        Swal.fire('អស់ស្តុក!', 'ផលិតផលនេះមិនមានក្នុងស្តុកទេ', 'error');
+                        return false;
+                    }
+                }
+            }
+
+        let currentTaxRate = 0; // តម្លៃ Tax លំនាំដើម %
+
+        function updateCart() {
+            const container = $('#cart-items');
+            container.empty();
+
+            let subtotalAfterItemDisc = 0;
+            let totalOriginalPrice = 0;
+            let totalQty = 0;
+            let totalItemDiscountDollar = 0;
+
+            cart.forEach((item, index) => {
+                const price = parseFloat(item.price) || 0;
+                const qty = parseInt(item.qty) || 0;
+                const discountAmount = parseFloat(item.discount) || 0;
+
+                const itemOriginalTotal = price * qty;
+                const itemAfterDiscTotal = (price - discountAmount) * qty;
+
+                totalOriginalPrice += itemOriginalTotal;
+                subtotalAfterItemDisc += itemAfterDiscTotal;
+                totalQty += qty;
+                totalItemDiscountDollar += (discountAmount * qty);
+
+                container.append(`
+                    <div class="border-bottom p-2 small d-flex align-items-center bg-white">
+                        <div style="width: 35%" class="khmer fw-bold text-primary text-truncate">${item.name}</div>
+                        <div style="width: 15%" class="text-center">$${price.toFixed(2)}</div>
+                        <div style="width: 15%" class="text-center px-1">
+                            <input type="number" class="form-control form-control-sm text-center shadow-none border-danger text-danger fw-bold"
+                                   style="padding: 2px; font-size: 0.8rem;" value="${item.discountRate || 0}"
+                                   onfocus="this.select()"
+                                   onchange="updateItemDiscount(${index}, this.value)" placeholder="%">
+                        </div>
+                        <div style="width: 20%" class="text-center d-flex align-items-center justify-content-center">
+                            <button class="btn btn-xs btn-outline-secondary p-0 shadow-none" style="width:22px; height:22px;" onclick="changeQty(${index}, -1)">-</button>
+                            <span class="mx-2 fw-bold">${qty}</span>
+                            <button class="btn btn-xs btn-outline-secondary p-0 shadow-none" style="width:22px; height:22px;" onclick="changeQty(${index}, 1)">+</button>
+                        </div>
+                        <div style="width: 15%" class="text-end fw-bold text-dark">$${itemAfterDiscTotal.toFixed(2)}</div>
+                        <div style="width: 5%" class="text-end">
+                            <a href="javascript:void(0)" class="text-danger border-0 bg-transparent" onclick="removeItem(${index})">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </div>
+                `);
+            });
+
+            // ១. បង្ហាញ "ទំនិញសរុប"
+            $('#item-count-display').text(`${totalQty} ($${totalOriginalPrice.toFixed(2)})`);
+
+            // ២. បញ្ចុះតម្លៃសរុប
+            let manualDiscount = parseFloat($('#manual-discount').val()) || 0;
+            let grandTotalDiscount = totalItemDiscountDollar + manualDiscount;
+            $('#total-discount-display').text(`($${manualDiscount.toFixed(2)}) $${grandTotalDiscount.toFixed(2)}`);
+
+            // ៣. គណនា Tax និង តម្លៃសរុបចុងក្រោយ
+            let subtotalFinal = subtotalAfterItemDisc - manualDiscount;
+            if (subtotalFinal < 0) subtotalFinal = 0;
+
+            let vatAmount = subtotalFinal * (currentTaxRate / 100);
+            let grandTotal = subtotalFinal + vatAmount;
+
+            // បង្ហាញតម្លៃទៅលើ UI Footer
+            $('#subtotal').text('$' + subtotalFinal.toFixed(2));
+            $('#vat-display').text('$' + vatAmount.toFixed(2));
+            $('#grandtotal').text('$' + grandTotal.toFixed(2)); // បង្ហាញតម្លៃបូក Tax រួច ($8.08)
+
+            // ហៅការគណនាសម្រាប់ Modal Checkout
+            calculateFinalTotal();
+
+            // បញ្ជាឱ្យ Cursor Focus លើប្រអប់ Scan
+            $('#barcodeScanner').focus();
+        }
+
+        function openTaxModal() {
+                $('#tax-rate-input').val(currentTaxRate);
+                $('#taxModal').modal('show');
+            }
+
+        function setQuickTax(value) {
+            $('#tax-rate-input').val(value);
+            // បើចង់ឱ្យចុចហើយ Save យកតែម្តង អាចថែម saveTaxRate() នៅខាងក្រោមនេះ
+            // saveTaxRate();
+        }
+
+        function saveTaxRate() {
+            let inputVal = $('#tax-rate-input').val();
+            currentTaxRate = parseFloat(inputVal) || 0;
+            $('#taxModal').modal('hide');
+            updateCart();
+        }
+
+        function backToTables() {
+            $('#section-products').addClass('d-none');
+                $('#section-tables').removeClass('d-none');
+                currentTableId = 0;
+                cart = [];
+                updateCart();
+                refreshTableUI();
+                $('#selected-table-name').val('');
+        }
+
+        //update discount
+        function updateItemDiscount(index, rate) {
+                let discountPercent = parseFloat(rate) || 0;
+
+                if (discountPercent < 0) discountPercent = 0;
+                if (discountPercent > 100) discountPercent = 100;
+
+                cart[index].discountRate = discountPercent;
+                cart[index].discount = (cart[index].price * discountPercent) / 100;
+
+            // ✅ កែពី renderCart() មកជា updateCart() វិញ
+            updateCart();
+        }
+
+
+        function refreshTableUI() {
+                $('.select-table-btn').each(function() {
+                    const id = $(this).data('id');
+                    const hasData = localStorage.getItem('hold_pos_' + id);
+                    const $badge = $(this).find('.status-badge');
+                    if (hasData && JSON.parse(hasData).length > 0) {
+                        $(this).addClass('busy');
+                        $badge.html('<i class="bi bi-circle-fill me-1 text-danger"></i> មានភ្ញៀវ');
+                        $badge.addClass('text-danger border-danger');
+                    } else {
+                        $(this).removeClass('busy');
+                        $badge.html('<i class="bi bi-circle-fill me-1 text-success"></i> ទំនេរ');
+                        $badge.removeClass('text-danger border-danger');
+                    }
+                });
+            }
+        function addCash(val) {
+                let cur = parseFloat($('#cash-dollar').val()) || 0;
+                $('#cash-dollar').val(cur + val);
+                calculateFinalTotal();
+            }
+        function clearCash() {
+
+                 // Clear cash inputs
+                $('#cash-dollar, #cash-riel').val('0');
+
+                // Reset manual discount
+                $('#manual-discount').val('0');
+
+                // Reset discount section
+                $('#discountRate, #discountAmount').val('0');
+
+                // Reset payment method select to default placeholder
+                $('#paymentMethod').prop('selectedIndex', 0);
+
+                // Recalculate totals
+                calculateFinalTotal();
+            }
+
+           //Update Qty
+        function changeQty(i, v) {
+                const item = cart[i];
+                const product = allProducts.find(p => p.id === item.id);
+
+                // បើកើនចំនួន ត្រូវឆែកស្តុកសិន
+                if (v > 0) {
+                    if (product && item.qty >= product.stock) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'អស់ស្តុក!',
+                            text: `ផលិតផលនេះមានត្រឹមតែ ${product.stock} ក្នុងស្តុកប៉ុណ្ណោះ`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        return; // បញ្ឈប់ មិនឱ្យកើនលើសស្តុក
+                    }
+                }
+
+                // ធ្វើការបូក/ដកចំនួន
+                item.qty += v;
+                if (item.qty <= 0) {
+                    cart.splice(i, 1);
+                    toastr.info("បានលុបទំនិញចេញពីកន្ត្រក");
+                }
+
+                updateCart();
+            }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        // ================= CONFIG & CONSTANTS =================
+        const EXCHANGE_RATE = 4100;
+
+
+        function getSubtotal() {
+            // ទាញតម្លៃពី Table Cart (ដកសញ្ញា $ ចេញ)
+            return parseFloat($('#subtotal').text().replace(/[^0-9.-]+/g, '')) || 0;
+        }
+
+
+        function calculateFinalTotal() {
+            // ១. ទាញតម្លៃ Grand Total ដែលបានគណនារួចស្រេចពី Footer (រួមទាំង Tax និង Item Discount)
+            let grandText = $('#grandtotal').text().replace('$', '').trim();
+            let grand = parseFloat(grandText) || 0;
+
+            // ២. ទាញយកការបញ្ចុះតម្លៃបន្ថែមក្នុង Modal (ឧទាហរណ៍៖ ចុះ % ពីធនាគារ)
+            const bankDiscRate = parseFloat($('#discountRate').val()) || 0;
+            const bankDiscAmount = (grand * bankDiscRate) / 100;
+
+            // តម្លៃចុងក្រោយដែលភ្ញៀវត្រូវបង់ពិតប្រាកដ
+            const finalGrandTotal = Math.max(0, grand - bankDiscAmount);
+
+            // ៣. បង្ហាញលទ្ធផលទៅកាន់ Modal UI
+            $('#discountAmount').val(bankDiscAmount.toFixed(2)); // បង្ហាញចំនួនលុយដែលចុះបន្ថែម
+            $('#modal-subtotal').text('$' + finalGrandTotal.toFixed(2));
+            $('#total-riel').text((finalGrandTotal * EXCHANGE_RATE).toLocaleString() + ' ៛');
+
+            // ៤. គណនាការបង់ប្រាក់ និងលុយអាប់
+            let paidD = parseFloat($('#cash-dollar').val()) || 0;
+            let paidR = parseFloat($('#cash-riel').val()) || 0;
+            let totalPaid = paidD + (paidR / EXCHANGE_RATE);
+
+            let balance = totalPaid - finalGrandTotal;
+            let debt = Math.max(0, finalGrandTotal - totalPaid);
+
+            // ៥. បង្ហាញលុយអាប់ ឬ លុយជំពាក់
+            $('#balance-dollar').text(balance > 0 ? '$' + balance.toFixed(2) : '$0.00');
+            $('#balance-riel').text(balance > 0 ? (Math.round(balance * EXCHANGE_RATE)).toLocaleString() + ' ៛' : '0 ៛');
+            $('#debt-amount').text('$' + debt.toFixed(2));
+
+            // ៦. Update Status (បង់គ្រប់, ជំពាក់, ឬ បង់ខ្លះ)
+            updatePaymentStatusUI(finalGrandTotal, totalPaid);
+        }
+
+        function updatePaymentStatusUI(grandTotal, totalPaid) {
+                const $status = $('#payment-status');
+
+                // សម្អាត Class ចាស់ៗចេញ (ទាំងអក្សរ និង Badge)
+                $status.removeClass('text-danger text-warning text-success badge bg-danger bg-warning bg-success text-dark');
+
+                if (totalPaid <= 0) {
+                    $status.text('ជំពាក់ (Credit)')
+                           .addClass('badge bg-danger px-3 py-2 shadow-sm');
+                } else if (totalPaid < (grandTotal - 0.01)) {
+                    $status.text('បង់ខ្លះ (Partial)')
+                           .addClass('badge bg-warning text-dark px-3 py-2 shadow-sm');
+                } else {
+                    $status.text('បង់គ្រប់ (Paid)')
+                           .addClass('badge bg-success px-3 py-2 shadow-sm');
+                }
+        }
+
+
+        function handleConfirmPayment() {
+             const currentTableId = parseInt($('#selected-table-id').val()) || 0;
+             const customerId = parseInt($('#CustomersId').val()) || 0;
+             const EXCHANGE_RATE = 4100;
+
+             // ១. ប្រមូលទិន្នន័យតម្លៃ
+             const subtotal = getSubtotal();
+             const discountRate = parseFloat($('#discountRate').val()) || 0;
+             const manualDiscount = parseFloat($('#manual-discount').val()) || 0;
+
+             // ២. គណនា Discount (ដូចកូដដើមរបស់បង)
+             let totalItemDiscount = 0;
+             const itemsData = cart.map(item => {
+                 const directItemDiscount = parseFloat(item.discount) || 0;
+                 const bankDiscountPerItem = ((item.price - directItemDiscount) * discountRate / 100);
+                 const totalDiscountPerUnit = directItemDiscount + bankDiscountPerItem;
+                 totalItemDiscount += (totalDiscountPerUnit * item.qty);
+
+                 return {
+                     Id: item.id,
+                     Qty: item.qty,
+                     Price: item.price,
+                     Discount: totalDiscountPerUnit
+                 };
+             });
+
+             // --- ចំណុចបន្ថែមថ្មី៖ គណនា Tax និង GrandTotal ---
+             const totalAfterDiscount = subtotal - (totalItemDiscount + manualDiscount);
+
+             // ទាញយក currentTaxRate ដែលយើងបង្កើតក្នុង updateCart
+             const taxAmount = totalAfterDiscount * (currentTaxRate / 100);
+             const grandTotal = totalAfterDiscount + taxAmount;
+             // ------------------------------------------
+
+             const paidDollar = parseFloat($('#cash-dollar').val()) || 0;
+             const paidRiel = parseFloat($('#cash-riel').val()) || 0;
+             const totalPaid = paidDollar + (paidRiel / EXCHANGE_RATE);
+
+             // ៤. លក្ខខណ្ឌការពារ
+             if (currentTableId === 0) {
+                 Swal.fire('បញ្ជាក់', 'សូមជ្រើសរើសតុមុនពេលទូទាត់!', 'warning');
+                 return;
+             }
+
+             if (totalPaid < (grandTotal - 0.01) && !$('#allowCredit').is(':checked')) {
+                 Swal.fire('លុយមិនគ្រប់', `ទឹកប្រាក់ត្រូវបង់គឺ $${grandTotal.toFixed(2)}`, 'warning');
+                 return;
+             }
+
+             // ៥. រៀបចំទិន្នន័យផ្ញើទៅ Server
+             const selectedOption = $('#paymentMethod').find('option:selected');
+             const bName = selectedOption.data('bankname') || 'CASH';
+             const loggedInSellerId = parseInt($('#currentSellerId').val()) || 1;
+
+             const orderData = {
+                 TableId: currentTableId,
+                 CustomerId: customerId,
+                 Discount: totalItemDiscount + manualDiscount,
+                 Tax: taxAmount,         // បញ្ជូនតម្លៃអាករទៅ Server
+                 TaxRate: currentTaxRate, // បញ្ជូន % អាករទៅ Server
+                 BankDiscount: discountRate,
+                 BankDiscountName: bName,
+                 PaymentMethod: bName,
+                 PaidDollar: paidDollar,
+                 PaidRiel: paidRiel,
+                 Note: $('#order-note').val(),
+                 SalerId: loggedInSellerId,
+                 StoreId: parseInt($('#currentStoreId').val()) || 1,
+                 Items: itemsData
+             };
+
+             // ៦. បាញ់ទៅ Server
+                $.ajax({
+                    url: '/Order/Checkout',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(orderData),
+                    beforeSend: function() {
+                        Swal.showLoading();
+                        $('#confirm-payment').prop('disabled', true);
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            localStorage.removeItem('hold_pos_' + currentTableId);
+                            window.location.href = '/Order/Invoicepos/' + res.orderId;
+                        } else {
+                            Swal.fire('បរាជ័យ', res.message, 'error');
+                            $('#confirm-payment').prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'ការតភ្ជាប់មានបញ្ហា!', 'error');
+                        $('#confirm-payment').prop('disabled', false);
+                    }
+                });
+         }
+
+
+        $(document).ready(function() {
+            // រាល់ពេលប្តូរវិធីបង់ប្រាក់ (ABA, ACLEDA...)
+            $('#paymentMethod').on('change', function() {
+                const rate = $(this).find(':selected').data('discount') || 0;
+                $('#discountRate').val(rate);
+                calculateFinalTotal();
+            });
+
+            // រាល់ពេលវាយលេខលុយ
+            $(document).on('input', '#cash-dollar, #cash-riel, #manual-discount', calculateFinalTotal);
+
+            // ចុចប៊ូតុងបង់ប្រាក់
+            $('#confirm-payment').on('click', handleConfirmPayment);
+        });
+
+
+ $('#btn-print').click(function() {
+    if (currentTableId === 0) {
+        Swal.fire('បញ្ជាក់', 'សូមជ្រើសរើសតុជាមុន!', 'warning');
+        return;
+    }
+
+    // ទាញឈ្មោះតុពី UI
+    const tableName = $('#selected-table-name').text().trim() || "តុលេខ " + currentTableId;
+    const tableData = localStorage.getItem('hold_pos_' + currentTableId);
+
+    let form = document.createElement("form");
+    // កុំដាក់ form.target = "_blank" ដើម្បីកុំឱ្យវាលោត Page ថ្មី
+    form.method = "POST";
+    form.action = "/Order/PrintPreview";
+
+    form.appendChild(createHiddenInput("tableId", currentTableId));
+    form.appendChild(createHiddenInput("tableName", tableName));
+    if (tableData) {
+        form.appendChild(createHiddenInput("jsonData", tableData));
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+});
+
+function createHiddenInput(name, value) {
+    let input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    return input;
+}
+    </script>
+
+    <script>
+    // ១. ប្រកាស Function ជាលក្ខណៈ Global (ដាក់នៅខាងលើគេបង្អស់ ដើម្បីឱ្យគ្រប់កន្លែងស្គាល់វា)
+    function showToast(icon, title) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        Toast.fire({
+            icon: icon,
+            title: title
+        });
+    }
+
+    $(document).ready(function() {
+        // ២. មុខងារសម្រាប់ប៊ូតុង "កម្ម៉ង់"
+        $('#btn-order').click(function() {
+            // ឆែកមើលទិន្នន័យក្នុងកន្ត្រក
+            if (cart.length === 0) {
+                Swal.fire('បញ្ជាក់', 'សូមជ្រើសរើសមុខម្ហូបជាមុន!', 'warning');
+                return;
+            }
+
+            // ឆែកមើលលេខតុ
+            if (currentTableId === 0) {
+                Swal.fire('បញ្ជាក់', 'សូមជ្រើសរើសតុជាមុន!', 'warning');
+                return;
+            }
+
+            // រៀបចំទិន្នន័យឱ្យត្រូវតាម Class OrderItem ក្នុង C#
+            const formattedItems = cart.map(item => ({
+                ProductId: item.id,
+                Qty: item.qty,
+                Price: item.price,
+                Discount: item.discount
+            }));
+
+            // បង្ហាញ Loading
+            Swal.showLoading();
+
+            $.ajax({
+                url: '/Order/SendToKitchen',
+                type: 'POST',
+                data: {
+                    tableId: currentTableId,
+                    items: JSON.stringify(formattedItems)
+                },
+                success: function(res) {
+                    Swal.close(); // បិទ Loading
+
+                    if(res.success) {
+                        // ហៅប្រើ showToast ដែលយើងបានប្រកាសខាងលើ
+                        showToast('success', 'បានរក្សាទុក និងផ្ញើទៅផ្ទះបាយ!');
+
+                        // រក្សាទុកក្នុង LocalStorage ដើម្បីចំណាំតុរវល់ (Busy Table)
+                        localStorage.setItem('hold_pos_' + currentTableId, JSON.stringify(cart));
+
+                        // ធ្វើបច្ចុប្បន្នភាព UI តុ (ប្តូរពណ៌តុ)
+                        if (typeof refreshTableUI === "function") {
+                            refreshTableUI();
+                        }
+
+                        // ប្រសិនបើបងចង់ឱ្យសម្អាត Cart ក្រោយកម្ម៉ង់រួច បើក Comment ខាងក្រោម
+                        // cart = [];
+                        // updateCartUI();
+
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    console.error("AJAX Error: ", error);
+                    Swal.fire('Error', 'បណ្ដាញមានបញ្ហា ឬ Server មាន Error!', 'error');
+                }
+            });
+        });
+    });
+</script>
+
+}
+
+
+
+
+

@@ -1,0 +1,10 @@
+<?php
+namespace App\Repository\IRepository;
+interface IItemExpenseRepository{
+    public function all($request);
+    public function create(array $data);
+    public function find($id);
+    public function update($id,array $data);
+    public function delete($id);
+
+}
