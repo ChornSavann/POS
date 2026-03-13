@@ -3,6 +3,7 @@ namespace App\Repository;
 use App\Models\User;
 use App\Repository\IRepository\IUserRepository;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 class UserRepository implements IUserRepository
 {
     public function getAllUsers()
@@ -14,7 +15,13 @@ class UserRepository implements IUserRepository
     {
         return User::find($id);
     }
-    
+
+    public function register(array $data)
+    {
+        $data['password'] = Hash::make($data['password']);
+        return User::create($data);
+    }
+
     public function createUser(array $data)
     {
         $data['password'] = Hash::make($data['password']);
@@ -41,12 +48,14 @@ class UserRepository implements IUserRepository
         $user->delete();
         return true;
     }
+  
+   // UserRepository.php
     public function login(array $credentials)
     {
-        $user = User::where('email', $credentials['email'])->first();
-        if ($user && Hash::check($credentials['password'], $user->password)) {
-            return $user;
-        }
-        return null;
+        // Auth::attempt នឹងឆែក Password ផង និងបង្កើត Session ឱ្យ User ជាប់ក្នុង System ផង
+        return Auth::attempt([
+            'email' => $credentials['email'],
+            'password' => $credentials['password']
+        ], request()->has('remember'));
     }
 }

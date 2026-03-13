@@ -6,10 +6,11 @@ use App\Repository\IRepository\IUserRepository;
 use App\Service\IService\IUserService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class UserService implements IUserService {
-    
+
     protected $userRepository;
 
     public function __construct(IUserRepository $userRepository)
@@ -30,7 +31,7 @@ class UserService implements IUserService {
     public function createUser(array $data)
     {
         try {
-           
+
             // Business Logic: Hash password មុនរក្សាទុក
             if (isset($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
@@ -46,23 +47,44 @@ class UserService implements IUserService {
         }
     }
 
+
+    public function registerUser(array $data)
+    {
+        $userData = [
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'password'  => $data['password'], // កុំទាន់ Hash នៅទីនេះ
+            'role'      => $data['role'] ?? 'admin',
+            'phone'     => $data['phone'] ?? null,
+            'address'   => $data['address'] ?? null,
+            'is_active' => true,
+        ];
+
+        $user = $this->userRepository->register($userData);
+
+        if ($user) {
+            Auth::login($user);
+        }
+
+        return $user;
+    }
     public function updateUser($id, array $data)
     {
-        try 
+        try
         {
             // Business Logic: បើដូរ password ត្រូវ Hash តែបើអត់ទេ ត្រូវលុបវាចេញដើម្បីកុំឱ្យវា Update ជាន់ password ចាស់
-            if (!empty($data['password'])) 
+            if (!empty($data['password']))
             {
                 $data['password'] = Hash::make($data['password']);
-            } 
-            else 
+            }
+            else
                 {
                 unset($data['password']);
             }
 
             return $this->userRepository->updateUser($id, $data);
-        } 
-        catch (Exception $e) 
+        }
+        catch (Exception $e)
         {
             Log::error("Error updating user ID {$id}: " . $e->getMessage());
             return null;
@@ -76,7 +98,7 @@ class UserService implements IUserService {
 
     public function login(array $credentials)
     {
-        // មុខងារ Login តាមរយៈ Service Layer
+        
         return $this->userRepository->login($credentials);
     }
 }

@@ -136,7 +136,7 @@
                                         <img src="{{ asset('assets/img/no-image.png') }}" height="60" />
                                     @endif
 
-                                    <h2>{{ $store->name_kh ?? 'ឈ្មោះក្រុមហ៊ុនរបស់អ្នក' }}</h2>
+                                    <h2>{{ $store->name ?? 'ឈ្មោះក្រុមហ៊ុនរបស់អ្នក' }}</h2>
                                     <div style="font-size: 11px; color: #555;">
                                         អាសយដ្ឋាន៖ {{ $store->address ?? 'ភ្នំពេញ, ប្រទេសកម្ពុជា' }} |
                                         ទូរស័ព្ទ៖ {{ $store->phone ?? '012 345 678' }}
@@ -144,7 +144,7 @@
                                 </div>
                                 <h2>ឈ្មោះហាង ឬក្រុមហ៊ុនរបស់អ្នក</h2>
                                 <div style="font-size: 12px; color: #555;">
-                                    ភ្នំពេញ, ប្រទេសកម្ពុជា | ទូរស័ព្ទ៖ 012 345 678
+                                    ភ្នំពេញ, ប្រទេសកម្ពុជា | ទូរស័ព្ទ៖ 096 678 2932
                                 </div>
                             </div>
                             <div class="invoice-title-box" style="text-align: right;">

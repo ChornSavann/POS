@@ -3,7 +3,7 @@
 
 @section('content')
 <style>
-    body { background-color: #f0f2f5; font-family: 'Inter', 'Kantumruy Pro', sans-serif; }
+    body { background-color: #f0f2f5;  }
     .content-header h2 { font-weight: 700; color: #1e293b; letter-spacing: -0.5px; }
 
     /* Quick Links Modern Style */
@@ -113,7 +113,7 @@
                 <a href="#" class="quick-link-item"><i class="fa fa-truck"></i><span>Suppliers</span></a>
                 <a href="#" class="quick-link-item"><i class="fa fa-shopping-cart"></i><span>Purchase</span></a>
                 <a href="#" class="quick-link-item"><i class="fa fa-chart-line"></i><span>Analysis</span></a>
-                <a href="{{ url('/Settings') }}" class="quick-link-item"><i class="fa fa-sliders-h"></i><span>Settings</span></a>
+                <a href="{{ route('units.index') }}" class="quick-link-item"><i class="fa fa-sliders-h"></i><span>Settings</span></a>
             </div>
         </div>
     </div>
@@ -282,13 +282,20 @@
             toastr.success('រីករាយដែលបានជួបអ្នកម្តងទៀត {{ Auth::user()->name ?? session("FullName") }}!', 'ជម្រាបសួរ!');
         @endif
 
-        // លោត Modal ស្វ័យប្រវត្តិបើមានទំនិញអស់ស្តុក
+       // លោត Modal ស្វ័យប្រវត្តិបើមានទំនិញអស់ស្តុក
         @if(isset($lowStockProducts) && $lowStockProducts->count() > 0)
             setTimeout(function() {
                 var lowStockEl = document.getElementById('lowStockModal');
                 if(lowStockEl) {
                     var myModal = new bootstrap.Modal(lowStockEl);
+
+                    // ១. បង្ហាញ Modal
                     myModal.show();
+
+                    // ២. កំណត់ឱ្យវាបិទទៅវិញដោយខ្លួនឯង បន្ទាប់ពី ៣ វិនាទី (3000ms)
+                    setTimeout(function() {
+                        myModal.hide();
+                    }, 1000); // បងអាចដូរលេខ 3000 ទៅតាមការចង់បាន
                 }
             }, 1200);
         @endif

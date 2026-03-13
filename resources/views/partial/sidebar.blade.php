@@ -244,7 +244,7 @@
                     <ul class="nav nav-treeview ">
                         {{-- Sale Report --}}
                         <li class="nav-item">
-                            <a href="#" class="nav-link {{ Request::is('reports/sales*') ? 'active' : '' }}">
+                            <a href="{{ route('reports.daily') }}" class="nav-link {{ Request::is('reports/sales*') ? 'active' : '' }}">
                                 <i class=" bi bi-graph-up-arrow text-success"></i>
                                 <p>Sale Reports</p>
                             </a>

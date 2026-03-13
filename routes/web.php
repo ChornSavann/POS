@@ -18,12 +18,24 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\PurchaseController;
 
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TableController;
 
 // Route::get('login', [UserController::class, 'index'])->name('user.index');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/test', [TestController::class, 'index'])->name('test.index');
-//user
+
+// Route::middleware(['auth'])->group(function () {
+
+//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+//     Route::middleware(['role:admin'])->group(function () {
+//         // រាល់ URL ក្នុងនេះ ចូលបានតែ Admin ប៉ុណ្ណោះ
+//         Route::resource('units', UnitController::class);
+//     });
+
+
+//     // Route ផ្សេងៗទៀត...
+// });
 
 
 // បង្ហាញបញ្ជី User ទាំងអស់
@@ -34,6 +46,12 @@ Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edi
 Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
 Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 Route::get('/login', [UserController::class, 'login'])->name('users.login');
+// Route::get('/login', [UserController::class, 'login'])->name('login');
+Route::post('/login', [UserController::class, 'authenticate'])->name('login.post');
+// Register Routes (បើបងចង់ឱ្យមានការចុះឈ្មោះ)
+Route::post('/register', [UserController::class, 'register'])->name('register.post');
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
 
 //category
 Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
@@ -64,6 +82,12 @@ Route::post('/store', [StoreController::class, 'store'])->name('store.store');
 Route::get('/store/{id}/edit', [StoreController::class, 'edit'])->name('store.edit');
 Route::put('/store/{id}', [StoreController::class, 'update'])->name('store.update');
 Route::delete('/store/{id}', [StoreController::class, 'destroy'])->name('store.destroy');
+
+// List and Create
+Route::get('/table', [TableController::class, 'index'])->name('table.index');
+Route::post('/table', [TableController::class, 'store'])->name('table.store');
+Route::put('/table/{id}', [TableController::class, 'update'])->name('table.update');
+Route::delete('/table/{id}', [TableController::class, 'destroy'])->name('table.destroy');
 
 //supplier
 Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -114,13 +138,7 @@ Route::get('purchase/edit/{id}',[PurchaseController::class,'edit'])->name('purch
 Route::put('/purchase/update/{id}', [PurchaseController::class, 'update'])->name('purchases.update');
 Route::delete('/purchase/delete/{id}',[PurchaseController::class,'destroy'])->name('purchase.delete');
 
-// List and Create
-Route::get('/table', [TableController::class, 'index'])->name('table.index');
-Route::post('/table', [TableController::class, 'store'])->name('table.store');
-// Update (ត្រូវការ ID)
-Route::put('/table/{id}', [TableController::class, 'update'])->name('table.update');
-// Delete (ត្រូវការ ID)
-Route::delete('/table/{id}', [TableController::class, 'destroy'])->name('table.destroy');
+
 
 //Order
 Route::get('/pos',[OrderController::class,'index'])->name('order.index');
@@ -160,3 +178,14 @@ Route::prefix('item-expenses')->name('item_expense.')->group(function () {
        Route::put('/expense-types/{id}', [ExpenseTypeController::class, 'update'])->name('expense_types.update');
        Route::delete('/expense-types/{id}', [ExpenseTypeController::class, 'destroy'])->name('expense_types.destroy');
 
+// Group សម្រាប់របាយការណ៍ទាំងអស់
+    Route::prefix('reports')->name('reports.')->group(function () {
+
+        // Route សម្រាប់របាយការណ៍ប្រចាំថ្ងៃ
+        Route::get('/daily', [ReportController::class, 'Daily'])->name('daily');
+      // Route របស់បង
+        Route::get('/invoice/{id}', [ReportController::class, 'printInvoice'])->name('invoice');
+
+        // បងអាចបន្ថែមរបាយការណ៍ផ្សេងទៀតនៅទីនេះនាពេលក្រោយ
+        // Route::get('/monthly', [ReportController::class, 'Monthly'])->name('monthly');
+    });

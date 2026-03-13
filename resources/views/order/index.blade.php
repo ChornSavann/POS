@@ -694,7 +694,8 @@
     let currentTaxPercent = 0;
     let selectedCat = 'all';
 
-    // ១. រៀបចំទិន្នន័យ Products ពី Laravel មកជា JS Object
+    // // ១. រៀបចំទិន្នន័យ Products ពី Laravel មកជា JS Object
+
     @php
         $formattedProducts = $products->map(function($p) {
             return [
@@ -703,13 +704,12 @@
                 'barcode' => $p->barcode,
                 'price' => (float)$p->price,
                 'discount' => (float)($p->discount ?? 0),
-               'stock' => (int) ($p->stock->qty ?? 0)
+                'stock' => (int) ($p->stock->qty ?? 0)
             ];
-        });
+        })->values(); // បន្ថែម values() នៅទីនេះ ដើម្បីធានាថាវាជា Array [ ] មិនមែន { }
     @endphp
 
     const allProducts = @json($formattedProducts);
-
     $(document).ready(function() {
         // ២. កំណត់ CSRF Token សម្រាប់ AJAX (ការពារ Error 419)
         $.ajaxSetup({
@@ -719,25 +719,45 @@
         });
 
         refreshTableUI();
+        let barcodeTimeout;
 
-        // --- ផ្នែក Barcode Scanner ---
+        $('#barcodeScanner').on('input', function() {
+            clearTimeout(barcodeTimeout); // លុបការរង់ចាំចាស់ចោល
+
+            const code = $(this).val().trim();
+
+            // កំណត់ពេលរង់ចាំ 100ms (លឿនបំផុត) បើឈប់វាយ គឺបាញ់យកតែម្តង
+            barcodeTimeout = setTimeout(() => {
+                if (code !== "") {
+                    // ស្វែងរកផលិតផល
+                    const product = allProducts.find(p => String(p.barcode) === code);
+
+                    if (product) {
+                        addToCart(product);
+                        showToast('success', 'បានថែម: ' + product.name);
+                        $(this).val('').focus(); // សម្អាតប្រអប់ភ្លាម
+                    }
+                    // បើរកមិនឃើញ យើងមិនទាន់បង្ហាញ Error ទេ ក្រែងលោម៉ាស៊ីនបាញ់មិនទាន់ចប់
+                }
+            }, 100);
+        });
+
+        // រក្សាទុកកូដ Enter ទុកផងដែរ ក្រែងលោបងចង់វាយដៃរួច Enter
         $('#barcodeScanner').on('keypress', function(e) {
             if (e.which == 13) {
                 e.preventDefault();
+                // បើ Enter គឺឱ្យវាដំណើរការភ្លាមមិនបាច់ចាំ Timeout ទេ
                 const code = $(this).val().trim();
-                if (code !== "") {
-                    const product = allProducts.find(p => p.barcode === code);
-                    if (product) {
-                        addItemToCartLogic(product);
-                        showToast('success', 'បានថែម: ' + product.name);
-                    } else {
-                        showToast('error', 'រកមិនឃើញបាកូដ: ' + code);
-                    }
+                const product = allProducts.find(p => String(p.barcode) === code);
+                if (product) {
+                    addToCart(product);
+                    $(this).val('').focus();
+                } else {
+                    showToast('error', 'រកមិនឃើញបាកូដ: ' + code);
                     $(this).val('').focus();
                 }
             }
         });
-
 
         // --- ផ្នែកជ្រើសរើសតុ ---
 
@@ -902,39 +922,68 @@
         });
 
     //Refresh UI
+    // function refreshTableUI(tableId, status) {
+    //         if (!tableId || !status) {
+    //             console.error("Table ID ឬ Status មិនទាន់មានតម្លៃ:", {tableId, status});
+    //             return;
+    //         }
+
+    //         let tableCard = $(`.select-table-btn[data-id="${tableId}"]`);
+
+    //         // បើ Card តុហ្នឹងអត់មានក្នុង HTML ទេ កុំឱ្យវាបន្តទៅមុខទៀត
+    //         if (tableCard.length === 0) {
+    //             console.warn("រកមិនឃើញ Card របស់តុ ID:", tableId);
+    //             return;
+    //         }
+
+    //         let currentStatus = status.toLowerCase();
+
+    //         if (currentStatus === 'free' || currentStatus === 'available') {
+    //             tableCard.removeClass('busy');
+    //             tableCard.find('.badge')
+    //                 .removeClass('text-danger border-danger')
+    //                 .addClass('text-success border-success')
+    //                 .text('ទំនេរ');
+    //         } else if (currentStatus === 'busy') {
+    //             tableCard.addClass('busy');
+    //             tableCard.find('.badge')
+    //                 .removeClass('text-success border-success')
+    //                 .addClass('text-danger border-danger')
+    //                 .text('មានភ្ញៀវ');
+    //         }
+    // }
     function refreshTableUI(tableId, status) {
-            if (!tableId || !status) {
-                console.error("Table ID ឬ Status មិនទាន់មានតម្លៃ:", {tableId, status});
-                return;
-            }
-
-            let tableCard = $(`.select-table-btn[data-id="${tableId}"]`);
-
-            // បើ Card តុហ្នឹងអត់មានក្នុង HTML ទេ កុំឱ្យវាបន្តទៅមុខទៀត
-            if (tableCard.length === 0) {
-                console.warn("រកមិនឃើញ Card របស់តុ ID:", tableId);
-                return;
-            }
-
-            let currentStatus = status.toLowerCase();
-
-            if (currentStatus === 'free' || currentStatus === 'available') {
-                tableCard.removeClass('busy');
-                tableCard.find('.badge')
-                    .removeClass('text-danger border-danger')
-                    .addClass('text-success border-success')
-                    .text('ទំនេរ');
-            } else if (currentStatus === 'busy') {
-                tableCard.addClass('busy');
-                tableCard.find('.badge')
-                    .removeClass('text-success border-success')
-                    .addClass('text-danger border-danger')
-                    .text('មានភ្ញៀវ');
-            }
+        // បើអត់មានតម្លៃបោះមកទេ ឱ្យវាឈប់ធ្វើការដោយស្ងប់ស្ងាត់ (Silent Return)
+        if (!tableId || !status) {
+            return;
         }
 
+        let tableCard = $(`.select-table-btn[data-id="${tableId}"]`);
+
+        if (tableCard.length === 0) {
+            console.warn("រកមិនឃើញ Card របស់តុ ID:", tableId);
+            return;
+        }
+
+        let currentStatus = status.toLowerCase();
+
+        // ប្តូរ UI ទៅតាមស្ថានភាពតុ
+        if (currentStatus === 'free' || currentStatus === 'available') {
+            tableCard.removeClass('busy');
+            tableCard.find('.badge')
+                .removeClass('text-danger border-danger')
+                .addClass('text-success border-success')
+                .text('ទំនេរ');
+        } else if (currentStatus === 'busy') {
+            tableCard.addClass('busy');
+            tableCard.find('.badge')
+                .removeClass('text-success border-success')
+                .addClass('text-danger border-danger')
+                .text('មានភ្ញៀវ');
+        }
+    }
         // --- Real-time Calculation on Modal Input ---
-        $(document).on('input', '#cash-dollar, #cash-riel, #manual-discount, #discountRate', () => {
+    $(document).on('input', '#cash-dollar, #cash-riel, #manual-discount, #discountRate', () => {
             calculateFinalTotal();
         });
 
@@ -1217,7 +1266,7 @@
         currentTableId = 0;
         cart = [];
         updateCart();
-        refreshTableUI();
+        // refreshTableUI();
     }
 
     function updatePaymentStatusUI(grand, paid) {
@@ -1356,7 +1405,14 @@
         // ទាញតម្លៃ Tax
         let taxRateValue = typeof currentTaxPercent !== 'undefined' ? currentTaxPercent : 0;
         let calculatedTaxAmount = (subtotal / (1 + (taxRateValue / 100))) * (taxRateValue / 100);
+        // ១. គណនា Discount សរុបពីក្នុង Cart (Item Discount)
+        let totalItemDiscount = cart.reduce((sum, item) => {
+            let itemDiscount = (item.price * (item.discountRate || 0) / 100) * item.qty;
+            return sum + itemDiscount;
+        }, 0);
 
+        // ២. ទាញយក Discount បន្ថែមលើវិក្កយបត្រ (បើសិនមានការបញ្ចុះតម្លៃបន្ថែមទៀត)
+        let orderDiscount = parseFloat($('#discountAmount').val()) || 0;
         // ៣. ឆែកលក្ខខណ្ឌការទូទាត់
         if (debtCalc > 0.005 && !isAllowCredit) {
             return Swal.fire({
@@ -1386,7 +1442,10 @@
             tax_rate: taxRateValue,
             tax_amount: calculatedTaxAmount.toFixed(2),
             subtotal: subtotal,
-            discount: parseFloat($('#discountAmount').val()) || 0,
+            // discount: parseFloat($('#discountAmount').val()) || 0,
+            // បូកបញ្ចូលគ្នាទាំង Item Discount និង Order Discount
+            discount: orderDiscount,
+            total_discount: (totalItemDiscount + orderDiscount).toFixed(2),
             received_usd: receivedUsd,
             received_riel: receivedRiel,
             balance_dollar: debtCalc < 0 ? Math.abs(debtCalc).toFixed(2) : 0,

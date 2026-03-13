@@ -85,39 +85,129 @@ class OrderService implements IOrderService {
         return 'INV-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 
-    public function processCheckOut(array $data) {
-        return DB::transaction(function () use ($data) {
-            // ១. រៀបចំតម្លៃសម្រាប់ Order
-           $invoiceNo = $this->generateInvoiceNumber();
-            $subTotal = $data['subtotal'] ?? 0;
-            $discountAmount = $data['discount'] ?? 0;
-            $grandTotal = $subTotal - $discountAmount;
+    // public function processCheckOut(array $data) {
+    //     return DB::transaction(function () use ($data) {
+    //         // ១. រៀបចំតម្លៃសម្រាប់ Order
+    //        $invoiceNo = $this->generateInvoiceNumber();
+    //         $subTotal = $data['subtotal'] ?? 0;
+    //         $discountAmount = $data['discount'] ?? 0;
+    //         $grandTotal = $subTotal - $discountAmount;
 
-            // កំណត់តម្លៃជំពាក់ និងស្ថានភាពជំពាក់
+    //         // កំណត់តម្លៃជំពាក់ និងស្ថានភាពជំពាក់
+    //         $isCredit = (isset($data['is_credit']) && $data['is_credit'] == 1);
+    //         $debtAmount = $data['debt_amount'] ?? 0;
+
+    //         // ២. បង្កើត Order មេ
+    //         $order = $this->orderRepo->createOrder([
+    //             'invoice_no'     => $invoiceNo,
+    //             'order_date'     => now(),
+    //             'table_id'       => $data['table_id'],
+    //             'customer_id'    => $data['customer_id'] ?? 1,
+    //             'sub_total'      => $subTotal,
+    //             'discount'       => $data['bank_discount_rate'] ?? 0,
+    //             'total_discount' => $discountAmount,
+    //             'tax'            => $data['tax_rate'] ?? 0,
+    //             'grand_total'    => $grandTotal,
+    //             'is_credit'      => $isCredit,
+    //             'debt_amount'    => $debtAmount, // ✅ បន្ថែមការកត់ត្រាលុយជំពាក់នៅទីនេះ
+    //             'is_completed'   => true,
+    //             'is_paid'        => ($debtAmount <= 0), // បើអត់មានលុយជំពាក់ ទើបចាត់ទុកថា Paid
+    //             'note'           => $data['note'] ?? null,
+    //             'seller_id'      => $data['seller_id'] ?? 1,
+    //             'store_id'       => 1,
+    //         ]);
+
+    //         // ៣. បង្កើត Items និង កាត់ស្តុក
+    //         foreach ($data['items'] as $item) {
+    //             $itemDiscount = $item['discount'] ?? 0;
+    //             $itemTotal = ($item['price'] * $item['qty']) - $itemDiscount;
+
+    //             $this->orderRepo->createOrderItem([
+    //                 'order_id'   => $order->id,
+    //                 'product_id' => $item['id'],
+    //                 'qty'        => $item['qty'],
+    //                 'price'      => $item['price'],
+    //                 'discount'   => $itemDiscount,
+    //                 'total'      => $itemTotal,
+    //             ]);
+
+    //             $this->orderRepo->updateProductStock($item['id'], $item['qty']);
+    //         }
+
+    //         // ៤. បង្កើត Payment
+    //         $receivedUSD = $data['received_usd'] ?? 0;
+    //         $receivedRiel = $data['received_riel'] ?? 0;
+    //         $exchangeRate = 4100;
+    //         $paidTotalAmount = $receivedUSD + ($receivedRiel / $exchangeRate);
+
+    //         $this->orderRepo->createPayment([
+    //             'order_id'       => $order->id,
+    //             'payment_date'   => now(),
+    //             'payment_method' => $data['payment_method'] ?? 'Cash',
+    //             'paid_dollar'    => $receivedUSD,
+    //             'paid_riel'      => $receivedRiel,
+    //             'exchange_rate'  => $exchangeRate,
+    //             'paid_amount'    => $paidTotalAmount,
+    //             'balance_after'  => $data['balance_dollar'] ?? 0, // លុយអាប់
+    //             'payment_status' => ($debtAmount > 0) ? 'Partial' : 'Completed', // បើនៅខ្វះលុយ ដាក់ថា Partial
+    //             'payment_ref'    => $data['payment_ref'] ?? null,
+    //             'note'           => $data['note'] ?? null,
+    //         ]);
+
+    //         // // ៥. ប្ដូរស្ថានភាពតុ
+    //         if (!empty($data['table_id'])) {
+    //             $this->orderRepo->updateTableStatus($data['table_id'], 'free');
+    //         }
+    //         return $order;
+    //     });
+    // }
+    public function processCheckOut(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            // ១. គណនា Discount សរុបពី Items (Item Level Discount)
+            $totalItemDiscount = 0;
+            foreach ($data['items'] as $item) {
+                $totalItemDiscount += $item['discount'] ?? 0;
+            }
+
+            // ២. រៀបចំតម្លៃសម្រាប់ Order
+            $invoiceNo = $this->generateInvoiceNumber();
+            $subTotal = $data['subtotal'] ?? 0;
+
+            // discount នេះគឺតម្លៃដែលចុះបន្ថែមលើ Invoice (ឧទាហរណ៍៖ ចុះថែម $2 ចុងក្រោយ)
+            $invoiceDiscount = $data['discount'] ?? 0;
+
+            // ✅ Total Discount = Discount លើទំនិញទាំងអស់ + Discount លើវិក្កយបត្រ
+            $totalDiscountCalculated = $totalItemDiscount + $invoiceDiscount;
+
+            // Grand Total ត្រូវដក Discount សរុបចេញ
+            $grandTotal = $subTotal - $totalDiscountCalculated;
+
+            // កំណត់តម្លៃជំពាក់
             $isCredit = (isset($data['is_credit']) && $data['is_credit'] == 1);
             $debtAmount = $data['debt_amount'] ?? 0;
 
-            // ២. បង្កើត Order មេ
+            // ៣. បង្កើត Order មេ
             $order = $this->orderRepo->createOrder([
                 'invoice_no'     => $invoiceNo,
                 'order_date'     => now(),
                 'table_id'       => $data['table_id'],
                 'customer_id'    => $data['customer_id'] ?? 1,
                 'sub_total'      => $subTotal,
-                'discount'       => $data['bank_discount_rate'] ?? 0,
-                'total_discount' => $discountAmount,
+                'discount'       => $invoiceDiscount,       // Discount បន្ថែម
+                'total_discount' => $totalDiscountCalculated, // ✅ ឥឡូវវាបូកបញ្ចូលគ្នាទាំង Item និង Invoice Discount
                 'tax'            => $data['tax_rate'] ?? 0,
                 'grand_total'    => $grandTotal,
                 'is_credit'      => $isCredit,
-                'debt_amount'    => $debtAmount, // ✅ បន្ថែមការកត់ត្រាលុយជំពាក់នៅទីនេះ
+                'debt_amount'    => $debtAmount,
                 'is_completed'   => true,
-                'is_paid'        => ($debtAmount <= 0), // បើអត់មានលុយជំពាក់ ទើបចាត់ទុកថា Paid
+                'is_paid'        => ($debtAmount <= 0),
                 'note'           => $data['note'] ?? null,
                 'seller_id'      => $data['seller_id'] ?? 1,
                 'store_id'       => 1,
             ]);
 
-            // ៣. បង្កើត Items និង កាត់ស្តុក
+            // ៤. បង្កើត Items និង កាត់ស្តុក
             foreach ($data['items'] as $item) {
                 $itemDiscount = $item['discount'] ?? 0;
                 $itemTotal = ($item['price'] * $item['qty']) - $itemDiscount;
@@ -134,7 +224,7 @@ class OrderService implements IOrderService {
                 $this->orderRepo->updateProductStock($item['id'], $item['qty']);
             }
 
-            // ៤. បង្កើត Payment
+            // --- ផ្នែក Payment រក្សាទុកដដែល ---
             $receivedUSD = $data['received_usd'] ?? 0;
             $receivedRiel = $data['received_riel'] ?? 0;
             $exchangeRate = 4100;
@@ -148,20 +238,19 @@ class OrderService implements IOrderService {
                 'paid_riel'      => $receivedRiel,
                 'exchange_rate'  => $exchangeRate,
                 'paid_amount'    => $paidTotalAmount,
-                'balance_after'  => $data['balance_dollar'] ?? 0, // លុយអាប់
-                'payment_status' => ($debtAmount > 0) ? 'Partial' : 'Completed', // បើនៅខ្វះលុយ ដាក់ថា Partial
+                'balance_after'  => $data['balance_dollar'] ?? 0,
+                'payment_status' => ($debtAmount > 0) ? 'Partial' : 'Completed',
                 'payment_ref'    => $data['payment_ref'] ?? null,
                 'note'           => $data['note'] ?? null,
             ]);
 
-            // // ៥. ប្ដូរស្ថានភាពតុ
             if (!empty($data['table_id'])) {
                 $this->orderRepo->updateTableStatus($data['table_id'], 'free');
             }
+
             return $order;
         });
     }
-
     public function changeTableStatus($tableId, $status)
     {
         $formattedStatus = strtolower($status);
@@ -237,6 +326,7 @@ class OrderService implements IOrderService {
     {
         $order = $this->orderRepo->getOrderForPrint($id);
         $store = \App\Models\Stores::first();
+
         return [
             'order'       => $order,
             'store'       => $store, // បោះ Store ទៅទាំងមូលដើម្បីយក ឈ្មោះ អាសយដ្ឋាន និង Logo
@@ -244,6 +334,7 @@ class OrderService implements IOrderService {
             // ប្រសិនបើ Table Order មាន seller_id បងអាចហៅតាម relation បែបនេះ៖
             'cashierName' => $order->seller->name ?? 'Admin',
         ];
+         dd($store);
     }
 
     public function getDataForPrint()

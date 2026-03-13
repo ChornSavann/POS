@@ -137,6 +137,49 @@
             }
         }
     </style>
+    <style>
+.invoice-header{
+    width:100%;
+    border-bottom:2px solid #0d6efd;
+    padding-bottom:10px;
+    margin-bottom:15px;
+}
+
+.logo-box{
+    width:90px;
+    height:90px;
+    border-radius:10px;
+    overflow:hidden;
+    border:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f8f9fa;
+}
+
+.logo-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.store-title{
+    margin:0;
+    font-size:24px;
+    font-weight:bold;
+    color:#0d6efd;
+}
+
+.store-info{
+    font-size:14px;
+    color:#444;
+}
+
+.print-date{
+    font-size:12px;
+    color:#888;
+}
+</style>
 </head>
 <body>
 
@@ -151,23 +194,38 @@
 
 <div class="report-wrapper">
     <div class="report-header">
-        <table>
-            <tr>
-                <td style="width:150px;">
-                    @if($store && $store->logo)
-                        <img src="{{ asset('Image/stores/' . $store->logo) }}" height="90" />
-                    @else
-                        <div style="width:90px; height:90px; background:#eee; display:flex; align-items:center; justify-content:center; border-radius:8px;">LOGO</div>
-                    @endif
-                </td>
-                <td style="text-align:right;">
-                    <h2 class="store-title">{{ $store->StoreName ?? 'ឈ្មោះហាងរបស់អ្នក' }}</h2>
-                    <p style="margin:5px 0; font-size:14px;">{{ $store->Address ?? 'អាសយដ្ឋានមិនទាន់កំណត់' }}</p>
-                    <p style="margin:3px 0; font-size:14px;">លេខទូរស័ព្ទ៖ <strong>{{ $store->Phone ?? '000 000 000' }}</strong></p>
-                    <p style="margin:3px 0; font-size:13px; color:#666;">កាលបរិច្ឆេទបោះពុម្ព៖ {{ now()->format('d/M/Y H:i') }}</p>
-                </td>
-            </tr>
-        </table>
+        <table class="invoice-header">
+    <tr>
+        <td style="width:120px;">
+            <div class="logo-box">
+                @if($store && $store->logo)
+                    <img src="{{ asset('Image/stores/' . $store->logo) }}">
+                @else
+                    <span style="color:#999;font-weight:bold;">LOGO</span>
+                @endif
+            </div>
+        </td>
+
+        <td style="text-align:right;">
+            <h2 class="store-title">{{ $store->name ?? 'ឈ្មោះហាងរបស់អ្នក' }}</h2>
+
+            <div class="store-info">
+                <p style="margin:3px 0;">
+                    {{ $store->address ?? 'អាសយដ្ឋានមិនទាន់កំណត់' }}
+                </p>
+
+                <p style="margin:3px 0;">
+                    📞 លេខទូរស័ព្ទ៖
+                    <strong>{{ $store->phone ?? '000 000 000' }}</strong>
+                </p>
+            </div>
+
+            <p class="print-date">
+                កាលបរិច្ឆេទបោះពុម្ព៖ {{ now()->format('d/M/Y H:i') }}
+            </p>
+        </td>
+    </tr>
+</table>
     </div>
 
     <div class="invoice-title">របាយការណ៍លក់សរុប / SALES REPORT</div>

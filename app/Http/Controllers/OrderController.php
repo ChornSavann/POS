@@ -88,6 +88,7 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+    
     public function showInvoice($id)
     {
         $order = Order::with(['customer', 'orderItems.product'])->findOrFail($id);
@@ -99,7 +100,7 @@ class OrderController extends Controller
         return view('order.invoice_sale', $data);
     }
 
-   
+
     public function printAll()
     {
         // ហៅទិន្នន័យពី Service
