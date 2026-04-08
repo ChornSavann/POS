@@ -105,6 +105,10 @@ return [
         ),
     ],
 
+
+//     'providers' => [
+//     SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+// ],
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

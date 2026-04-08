@@ -12,6 +12,7 @@
 
 <!DOCTYPE html>
 <html lang="km">
+
 <head>
     <meta charset="utf-8" />
     <title>POS Receipt - {{ $order->invoice_no }}</title>
@@ -145,11 +146,19 @@
             line-height: 1.5;
         }
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         @media print {
-            .no-print { display: none !important; }
+            .no-print {
+                display: none !important;
+            }
+
             @page {
                 margin: 0;
                 size: auto;
@@ -157,12 +166,17 @@
         }
     </style>
 </head>
+
 <body onload="window.print();">
 
     <div class="ticket">
         <div class="header">
-            <img src="{{ asset('Image/Logo/Logo-removebg-preview (1).png') }}" class="logo" alt="Logo">
-            <div class="shop-name">Restaurant Shop</div>
+            <img src="{{ !empty($shopSetting->logo) ? asset('Image/stores/' . $shopSetting->logo) : asset('Image/Logo/Logo-removebg-preview (1).png') }}"
+                class="logo" alt="Logo">
+
+            <div class="shop-name">
+                {{ $shopSetting->name ?? 'Restaurant Shop' }}
+            </div>
         </div>
 
         <div class="divider"></div>
@@ -170,10 +184,13 @@
         <table class="info-table">
             <tr>
                 <td>អតិថិជន: <b>{{ $order->customer->name ?? 'Walk-In' }}</b></td>
-                <td class="text-right">កាលបរិច្ឆេទ: <span class="bold-text">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/y H:i') }}</span></td>
+                <td class="text-right">កាលបរិច្ឆេទ: <span
+                        class="bold-text">{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/y H:i') }}</span>
+                </td>
             </tr>
             <tr>
-                <td>លេខតុ / Table: <b style="font-size: 12px;">{{ $order->table_id != 0 ? $order->table_id : 'N/A' }}</b></td>
+                <td>លេខតុ / Table: <b
+                        style="font-size: 12px;">{{ $order->table_id != 0 ? $order->table_id : 'N/A' }}</b></td>
                 <td class="text-right">វិក្កយបត្រ: <b class="bold-text">#{{ $order->invoice_no }}</b></td>
             </tr>
             <tr>
@@ -195,11 +212,15 @@
             <tbody>
                 @foreach ($order->orderItems as $item)
                     <tr>
-                        <td><div style="font-weight: bold;">{{ $item->product->name ?? 'Unknown' }}</div></td>
+                        <td>
+                            <div style="font-weight: bold;">{{ $item->product->name ?? 'Unknown' }}</div>
+                        </td>
                         <td class="text-center bold-text">${{ number_format($item->price, 2) }}</td>
-                        <td class="text-center bold-text">{{ $item->discount > 0 ? "-$" . number_format($item->discount, 2) : "0" }}</td>
+                        <td class="text-center bold-text">
+                            {{ $item->discount > 0 ? "-$" . number_format($item->discount, 2) : '0' }}</td>
                         <td class="text-center bold-text">{{ number_format($item->qty, 0) }}</td>
-                        <td class="text-right"><b style="font-size: 10px;">${{ number_format($item->total, 2) }}</b></td>
+                        <td class="text-right"><b style="font-size: 10px;">${{ number_format($item->total, 2) }}</b>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -226,7 +247,8 @@
 
                 <tr>
                     <td style="padding-top: 5px; font-style: italic;">សរុបជាប្រាក់រៀល (RIEL):</td>
-                    <td class="text-right bold-text" style="padding-top: 5px; font-size: 11px;">{{ number_format($order->grand_total * $exchangeRate, 0) }} ៛</td>
+                    <td class="text-right bold-text" style="padding-top: 5px; font-size: 11px;">
+                        {{ number_format($order->grand_total * $exchangeRate, 0) }} ៛</td>
                 </tr>
             </table>
 
@@ -250,12 +272,33 @@
             </table>
         </div>
 
-        <div class="aba-payment-card">
-            <div class="aba-brand">ABA<span>'</span>PAY</div>
-            <img src="{{ asset('Image/Qr.jpg') }}" class="qr-only-image" alt="QR">
-            <div style="font-weight: bold; margin-top: 10px; text-transform: uppercase;">CHORN SAVANN</div>
+        <div class="qr-container"
+            style="text-align: center; padding: 12px; background: #fff; border: 1.5px solid #005a92; border-radius: 12px; width: 170px; margin: 10px auto;">
+            <div style="color: #005a92; font-weight: bold; font-size: 13px; margin-bottom: 8px;">BAKONG KHQR</div>
+
+            @if ($qr)
+                <div style="width: 140px; height: 140px; margin: 0 auto; display: block;">
+                    {{-- Render SVG --}}
+                    {!! $qr !!}
+                </div>
+
+                <div
+                    style="margin-top: 8px; font-weight: bold; color: #333; font-size: 11px; text-transform: uppercase;">
+                    {{ $order->seller->name ?? 'CHORN SAVANN' }}
+                </div>
+            @else
+                <div style="color: red; padding: 8px; font-size: 11px; border: 1px dashed red;">
+                    QR Error
+                </div>
+            @endif
         </div>
 
+        <div style="text-align: center; margin-top: 5px;">
+            <div id="timer" style="font-size: 16px; font-weight: bold; color: red;"></div>
+            <div id="status-text" style="font-size: 11px; color: gray; margin-top: 2px;">
+                <i class="fas fa-spinner fa-spin"></i> កំពុងផ្ទៀងផ្ទាត់ការបង់ប្រាក់អូតូ...
+            </div>
+        </div>
         <div class="footer">
             <div class="divider"></div>
             <p style="font-weight: bold; font-size: 10px;">សូមពិនិត្យទំនិញ និង លុយអាប់មុនចាកចេញ</p>
@@ -264,20 +307,28 @@
     </div>
 
     <div class="no-print" style="text-align: center; margin-top: 20px; padding-bottom: 30px;">
-        <button onclick="window.print()" style="padding: 10px 25px; background: #005d7d; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print Invoice</button>
-        <a href="{{ route('order.index') }}" style="padding: 10px 25px; background: #4caf50; color: #fff; text-decoration: none; border-radius: 5px; margin-left: 10px; display: inline-block; font-weight: bold;">Back to POS</a>
+        <button onclick="window.print()"
+            style="padding: 10px 25px; background: #005d7d; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print
+            Invoice</button>
+        <a href="{{ route('order.index') }}"
+            style="padding: 10px 25px; background: #4caf50; color: #fff; text-decoration: none; border-radius: 5px; margin-left: 10px; display: inline-block; font-weight: bold;">Back
+            to POS</a>
     </div>
 
 </body>
+
 </html>
-<script>
-    // ប្រសិនបើបើកក្នុង Iframe ឱ្យវា Print អូតូ
-    window.onload = function() {
-        if (window.self !== window.top) {
-            // បើកក្នុង Iframe មិនបាច់ធ្វើអ្វីទេ ទុកឱ្យ parent handle
-        } else {
-            // បើបើកផ្ទាល់ ឱ្យវាលោតផ្ទាំង print មកដែរ
-            window.print();
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // ប្រសិនបើបើកក្នុង Iframe ឱ្យវា Print អូតូ
+        window.onload = function() {
+            if (window.self !== window.top) {
+                // បើកក្នុង Iframe មិនបាច់ធ្វើអ្វីទេ ទុកឱ្យ parent handle
+            } else {
+                // បើបើកផ្ទាល់ ឱ្យវាលោតផ្ទាំង print មកដែរ
+                window.print();
+            }
         }
-    }
-</script>
+    </script>
+@endpush

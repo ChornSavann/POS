@@ -8,7 +8,7 @@ class UserRepository implements IUserRepository
 {
     public function getAllUsers()
     {
-        return User::all();
+        return User::with('userRole')->latest()->get();
     }
 
     public function getUserById($id)
@@ -24,9 +24,9 @@ class UserRepository implements IUserRepository
 
     public function createUser(array $data)
     {
-        $data['password'] = Hash::make($data['password']);
-        return User::create($data);
+        return User::create($data); // មិនបាច់ Hash ដោយដៃទេ ព្រោះ Model ធ្វើឱ្យហើយ
     }
+    
     public function updateUser($id, array $data)
     {
         $user = User::find($id);
@@ -48,7 +48,7 @@ class UserRepository implements IUserRepository
         $user->delete();
         return true;
     }
-  
+
    // UserRepository.php
     public function login(array $credentials)
     {
@@ -58,4 +58,5 @@ class UserRepository implements IUserRepository
             'password' => $credentials['password']
         ], request()->has('remember'));
     }
+
 }

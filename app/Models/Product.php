@@ -2,7 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     protected $fillable = [
@@ -36,11 +36,25 @@ class Product extends Model
     // {
     //     return $this->hasOne(Stock::class);
     // }
-public function stock()
-{
-    return $this->hasOne(Stock::class)->withDefault([
-        'qty' => 0,   // fallback qty
-        'note' => 'Initial Stock'
-    ]);
-}
+    public function stock()
+    {
+        return $this->hasOne(Stock::class)->withDefault([
+            'qty' => 0,   // fallback qty
+            'note' => 'Initial Stock'
+        ]);
+    }
+
+    public function orderItems(): HasMany
+    {
+        // សូមពិនិត្យមើលឈ្មោះ Model របស់បង (អាចជា OrderDetail ឬ OrderItem)
+        // និង Foreign Key (product_id)
+        return $this->hasMany(OrderItem::class, 'product_id');
+    }
+
+    public function stocks(): HasMany
+    {
+        // ប្រាកដថាបងមាន Model ឈ្មោះ Stock
+        // 'product_id' គឺជា Foreign Key នៅក្នុង table stocks
+        return $this->hasMany(Stock::class, 'product_id');
+    }
 }

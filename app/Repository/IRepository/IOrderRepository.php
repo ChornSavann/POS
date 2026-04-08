@@ -19,5 +19,7 @@ interface IOrderRepository {
     public function getTotalDebt();
     public function getOrderForPrint($id);
     public function getAllOrdersForPrint();
+    public function getOrderForInvoice($id);
+    public function getShopSetting();
 
 }

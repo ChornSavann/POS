@@ -31,22 +31,32 @@ class UserService implements IUserService {
     public function createUser(array $data)
     {
         try {
-
-            // Business Logic: Hash password មុនរក្សាទុក
+            // ១. Hash password
             if (isset($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
             }
 
-            // កំណត់ Role លំនាំដើមបើគ្មានការបញ្ជូនមក
-            $data['role'] = $data['role'] ?? 'user';
-
+            // ២. រៀបចំរូបភាព (Profile Picture) ដោយប្រើ move() ទៅកាន់ public_path
+            if (isset($data['profile_picture']) && $data['profile_picture'] instanceof \Illuminate\Http\UploadedFile) {
+                $file = $data['profile_picture'];
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $destinationPath = public_path('Image/users-image');
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+                // បញ្ចូល File ទៅក្នុង Folder ផ្ទាល់ (Direct Upload)
+                $file->move($destinationPath, $fileName);
+                $data['profile_picture'] = $fileName;
+            }
+            // ៣. កំណត់ Status លំនាំដើមបើមិនមានបញ្ជូនមក
+            $data['is_active'] = $data['is_active'] ?? 1;
             return $this->userRepository->createUser($data);
+
         } catch (Exception $e) {
             Log::error("Error creating user: " . $e->getMessage());
             return null;
         }
     }
-
 
     public function registerUser(array $data)
     {
@@ -68,24 +78,36 @@ class UserService implements IUserService {
 
         return $user;
     }
+
     public function updateUser($id, array $data)
     {
         try
         {
-            // Business Logic: បើដូរ password ត្រូវ Hash តែបើអត់ទេ ត្រូវលុបវាចេញដើម្បីកុំឱ្យវា Update ជាន់ password ចាស់
-            if (!empty($data['password']))
-            {
+            $user = $this->userRepository->getUserById($id);
+            // Logic Password
+            if (!empty($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
-            }
-            else
-                {
+            } else {
                 unset($data['password']);
+            }
+            // Logic សម្រាប់រូបភាព (ប្រើ move ទៅ public_path)
+            if (isset($data['profile_picture']) && $data['profile_picture'] instanceof \Illuminate\Http\UploadedFile) {
+
+                $file = $data['profile_picture'];
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $destinationPath = public_path('Image/users-image'); // កំណត់ Path ទៅ Folder public/Image/users-image
+                // លុបរូបចាស់ចេញពី Folder public ផ្ទាល់
+                if ($user->profile_picture && file_exists($destinationPath . '/' . $user->profile_picture)) {
+                    unlink($destinationPath . '/' . $user->profile_picture);
+                }
+                // បញ្ចូល File ទៅកាន់ Folder គោលដៅ
+                $file->move($destinationPath, $fileName);
+                $data['profile_picture'] = $fileName;
             }
 
             return $this->userRepository->updateUser($id, $data);
         }
-        catch (Exception $e)
-        {
+        catch (Exception $e) {
             Log::error("Error updating user ID {$id}: " . $e->getMessage());
             return null;
         }
@@ -93,12 +115,27 @@ class UserService implements IUserService {
 
     public function deleteUser($id)
     {
-        return $this->userRepository->deleteUser($id);
+        try
+        {
+            $user = $this->userRepository->getUserById($id);
+            if ($user)
+            {
+                $imagePath = public_path('Image/users-image/' . $user->profile_picture);
+                if ($user->profile_picture && file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+                return $this->userRepository->deleteUser($id);
+            }
+            return false;
+        }
+        catch (Exception $e) {
+            Log::error("Error deleting user ID {$id}: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function login(array $credentials)
     {
-        
         return $this->userRepository->login($credentials);
     }
 }

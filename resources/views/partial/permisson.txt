@@ -1,0 +1,150 @@
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <div class="sidebar-brand">
+        <a href="{{ route('dashboard') }}" class="brand-link">
+            <img src="{{ asset('./assets/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image opacity-75 shadow" />
+            <span class="brand-text fw-bold">POS SYSTEM</span>
+        </a>
+    </div>
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="navigation" data-accordion="false">
+
+                {{-- Dashboard: គ្រប់គ្នាអាចឃើញ --}}
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ Request::is('dashboard*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-speedometer2 text-info"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                {{-- 1. Roles & Permissions: សម្រាប់តែ Admin ធំ --}}
+                @if(auth()->user()->hasRole('admin'))
+                <li class="nav-item {{ Request::is('roles*') ? 'menu-open' : '' }}">
+                    <a href="{{ route('roles.index') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-person-badge text-info"></i>
+                        <p>Roles & Permissions</p>
+                    </a>
+                </li>
+                @endif
+
+                {{-- 2. Product Management: Admin និង User (Stock Manager) --}}
+                @can('view_products')
+                <li class="nav-item {{ Request::is('products*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::is('products*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-box-seam-fill text-warning"></i>
+                        <p>
+                            Product Management
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ Route('products.index') }}" class="nav-link {{ Request::is('products') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-list-ul"></i>
+                                <p>List Product</p>
+                            </a>
+                        </li>
+                        @can('create_products')
+                        <li class="nav-item">
+                            <a href="{{ Route('products.create') }}" class="nav-link {{ Request::is('products/create') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-plus-circle-dotted"></i>
+                                <p>Create Product</p>
+                            </a>
+                        </li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcan
+
+                {{-- 3. Sale Management: Admin, User, និង Cashier --}}
+                @can('view_sales')
+                <li class="nav-item {{ Request::is('sales*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::is('sales*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-cart-check-fill text-warning"></i>
+                        <p> Sale Management <i class="nav-arrow bi bi-chevron-right"></i> </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('order.list') }}" class="nav-link {{ Request::is('sales') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-journal-text"></i> <p>List Sales</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon bi bi-plus-square-dotted"></i> <p>POS Terminal</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endcan
+
+                {{-- 4. Manage Purchases: Admin និង User (Purchaser) --}}
+                @can('view_purchases')
+                <li class="nav-item {{ Request::is('purchases*') || Request::is('item-expenses*') || Request::is('banks*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::is('purchases*') || Request::is('item-expenses*') || Request::is('banks*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-cart-check-fill text-success"></i>
+                        <p> Manage Purchases <i class="nav-arrow bi bi-chevron-right"></i> </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('purchases.index') }}" class="nav-link {{ Request::is('purchases') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-list-ul"></i> <p>List Purchase</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('bank.index') }}" class="nav-link {{ Request::is('bank*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-bank text-info"></i> <p>Banks</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endcan
+
+                {{-- 5. System Settings: សម្រាប់តែ Admin --}}
+                @if(auth()->user()->hasRole('admin'))
+                <li class="nav-item {{ Request::is('units*') || Request::is('category*') || Request::is('brand*') || Request::is('store*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::is('units*') || Request::is('category*') || Request::is('brand*') || Request::is('store*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-gear-wide-connected text-secondary"></i>
+                        <p>Setting <i class="nav-arrow bi bi-chevron-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('category.index') }}" class="nav-link {{ Request::is('category*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-tags-fill"></i> <p>Category</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-people"></i> <p>User Management</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+
+                {{-- 6. Reports: Admin និង User (Manager) --}}
+                @can('view_reports')
+                <li class="nav-item {{ Request::is('reports*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::is('reports*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-bar-chart-line-fill text-danger"></i>
+                        <p> Reports <i class="nav-arrow bi bi-chevron-right"></i> </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('reports.daily') }}" class="nav-link {{ Request::is('reports/daily*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-graph-up-arrow text-success"></i> <p>Daily Reports</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('reports.profit_loss') }}" class="nav-link">
+                                <i class="nav-icon fas fa-chart-line text-success"></i> <p>Profit & Loss</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endcan
+
+            </ul>
+        </nav>
+    </div>
+</aside>

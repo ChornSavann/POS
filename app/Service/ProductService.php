@@ -53,11 +53,13 @@ class ProductService implements IProductService {
         return $this->productRepo->create($data);
     }
 
-   public function updateProduct($id, array $data)
+    public function updateProduct($id, array $data)
    {
-
         $product = $this->productRepo->find($id);
-
+    // ✅ ensure cost exists
+        if (!isset($data['cost'])) {
+            $data['cost'] = $product->cost;
+        }
         if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
             if ($product->image && file_exists(public_path($product->image))) {
                 unlink(public_path($product->image));
@@ -68,7 +70,7 @@ class ProductService implements IProductService {
             $file->move(public_path('Image/products'), $fileName);
             $data['image'] = 'Image/products/' . $fileName;
         }
-        $data['status'] = isset($data['status']) ? 1 : 0;
+        // $data['status'] = isset($data['status']) ? 1 : 0;
 
         return $this->productRepo->update($id, $data);
     }

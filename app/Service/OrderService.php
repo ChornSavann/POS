@@ -1,11 +1,13 @@
 <?php
 namespace App\Service;
 
-use App\Models\Seller;
+use App\Models\CashSession;
+
 use App\Models\Stores;
 use App\Service\IService\IOrderService;
 use App\Repository\IRepository\IOrderRepository;
 use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; // សម្រាប់បង្កើតរូបភាព QR
 class OrderService implements IOrderService {
     protected $orderRepo;
     public function __construct(IOrderRepository $orderRepo) {
@@ -13,7 +15,7 @@ class OrderService implements IOrderService {
     }
 
     public function getListOrderData($request) {
-        $pageSize     = $request->get('pageSize', 100);
+        $pageSize     = $request->get('pageSize', 1000);
         $orders       = $this->orderRepo->getAllOrders($pageSize);
         $totalSales   = $this->orderRepo->getTotalSales();
         $totalDebt    = $this->orderRepo->getTotalDebt();
@@ -85,82 +87,7 @@ class OrderService implements IOrderService {
         return 'INV-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 
-    // public function processCheckOut(array $data) {
-    //     return DB::transaction(function () use ($data) {
-    //         // ១. រៀបចំតម្លៃសម្រាប់ Order
-    //        $invoiceNo = $this->generateInvoiceNumber();
-    //         $subTotal = $data['subtotal'] ?? 0;
-    //         $discountAmount = $data['discount'] ?? 0;
-    //         $grandTotal = $subTotal - $discountAmount;
 
-    //         // កំណត់តម្លៃជំពាក់ និងស្ថានភាពជំពាក់
-    //         $isCredit = (isset($data['is_credit']) && $data['is_credit'] == 1);
-    //         $debtAmount = $data['debt_amount'] ?? 0;
-
-    //         // ២. បង្កើត Order មេ
-    //         $order = $this->orderRepo->createOrder([
-    //             'invoice_no'     => $invoiceNo,
-    //             'order_date'     => now(),
-    //             'table_id'       => $data['table_id'],
-    //             'customer_id'    => $data['customer_id'] ?? 1,
-    //             'sub_total'      => $subTotal,
-    //             'discount'       => $data['bank_discount_rate'] ?? 0,
-    //             'total_discount' => $discountAmount,
-    //             'tax'            => $data['tax_rate'] ?? 0,
-    //             'grand_total'    => $grandTotal,
-    //             'is_credit'      => $isCredit,
-    //             'debt_amount'    => $debtAmount, // ✅ បន្ថែមការកត់ត្រាលុយជំពាក់នៅទីនេះ
-    //             'is_completed'   => true,
-    //             'is_paid'        => ($debtAmount <= 0), // បើអត់មានលុយជំពាក់ ទើបចាត់ទុកថា Paid
-    //             'note'           => $data['note'] ?? null,
-    //             'seller_id'      => $data['seller_id'] ?? 1,
-    //             'store_id'       => 1,
-    //         ]);
-
-    //         // ៣. បង្កើត Items និង កាត់ស្តុក
-    //         foreach ($data['items'] as $item) {
-    //             $itemDiscount = $item['discount'] ?? 0;
-    //             $itemTotal = ($item['price'] * $item['qty']) - $itemDiscount;
-
-    //             $this->orderRepo->createOrderItem([
-    //                 'order_id'   => $order->id,
-    //                 'product_id' => $item['id'],
-    //                 'qty'        => $item['qty'],
-    //                 'price'      => $item['price'],
-    //                 'discount'   => $itemDiscount,
-    //                 'total'      => $itemTotal,
-    //             ]);
-
-    //             $this->orderRepo->updateProductStock($item['id'], $item['qty']);
-    //         }
-
-    //         // ៤. បង្កើត Payment
-    //         $receivedUSD = $data['received_usd'] ?? 0;
-    //         $receivedRiel = $data['received_riel'] ?? 0;
-    //         $exchangeRate = 4100;
-    //         $paidTotalAmount = $receivedUSD + ($receivedRiel / $exchangeRate);
-
-    //         $this->orderRepo->createPayment([
-    //             'order_id'       => $order->id,
-    //             'payment_date'   => now(),
-    //             'payment_method' => $data['payment_method'] ?? 'Cash',
-    //             'paid_dollar'    => $receivedUSD,
-    //             'paid_riel'      => $receivedRiel,
-    //             'exchange_rate'  => $exchangeRate,
-    //             'paid_amount'    => $paidTotalAmount,
-    //             'balance_after'  => $data['balance_dollar'] ?? 0, // លុយអាប់
-    //             'payment_status' => ($debtAmount > 0) ? 'Partial' : 'Completed', // បើនៅខ្វះលុយ ដាក់ថា Partial
-    //             'payment_ref'    => $data['payment_ref'] ?? null,
-    //             'note'           => $data['note'] ?? null,
-    //         ]);
-
-    //         // // ៥. ប្ដូរស្ថានភាពតុ
-    //         if (!empty($data['table_id'])) {
-    //             $this->orderRepo->updateTableStatus($data['table_id'], 'free');
-    //         }
-    //         return $order;
-    //     });
-    // }
     public function processCheckOut(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -181,16 +108,17 @@ class OrderService implements IOrderService {
             $totalDiscountCalculated = $totalItemDiscount + $invoiceDiscount;
 
             // Grand Total ត្រូវដក Discount សរុបចេញ
-            $grandTotal = $subTotal - $totalDiscountCalculated;
+            $grandTotal = $subTotal ;
 
             // កំណត់តម្លៃជំពាក់
             $isCredit = (isset($data['is_credit']) && $data['is_credit'] == 1);
             $debtAmount = $data['debt_amount'] ?? 0;
-
+            $activeSession = CashSession::where('user_id', auth()->id())->where('status', 'open')->first();
             // ៣. បង្កើត Order មេ
             $order = $this->orderRepo->createOrder([
                 'invoice_no'     => $invoiceNo,
                 'order_date'     => now(),
+                'cash_session_id' => $activeSession->id, // ត្រូវតែបញ្ចូល ID នេះ
                 'table_id'       => $data['table_id'],
                 'customer_id'    => $data['customer_id'] ?? 1,
                 'sub_total'      => $subTotal,
@@ -251,11 +179,13 @@ class OrderService implements IOrderService {
             return $order;
         });
     }
+
     public function changeTableStatus($tableId, $status)
     {
         $formattedStatus = strtolower($status);
         return $this->orderRepo->updateTableStatus($tableId, $formattedStatus);
     }
+
     public function payDebt(array $data)
     {
         $validator = \Illuminate\Support\Facades\Validator::make($data, [
@@ -321,20 +251,36 @@ class OrderService implements IOrderService {
         }
     }
 
-   // OrderService.php
+
+    // public function getPrintData($id)
+    // {
+    //     $order = $this->orderRepo->getOrderForPrint($id);
+    //     $store = \App\Models\Stores::first();
+    //     $cashierName = $order->seller->name ?? 'Admin';
+
+    //     return response()->json([
+    //         'order' => $order,
+    //         'store' => $store,
+    //         'cashierName' => $cashierName,
+    //         'exchangeRate' => 4100,
+    //     ]);
+    // }
     public function getPrintData($id)
     {
         $order = $this->orderRepo->getOrderForPrint($id);
         $store = \App\Models\Stores::first();
+         $qrData = $this->generateKHQR($order->grand_total);
+        $cashierName = $order->seller->name ?? 'Admin';
 
+        // ✅ កែមកជា Array ធម្មតា (លុប response()->json ចេញ)
         return [
-            'order'       => $order,
-            'store'       => $store, // បោះ Store ទៅទាំងមូលដើម្បីយក ឈ្មោះ អាសយដ្ឋាន និង Logo
-            'rate'        => 4100,
-            // ប្រសិនបើ Table Order មាន seller_id បងអាចហៅតាម relation បែបនេះ៖
-            'cashierName' => $order->seller->name ?? 'Admin',
+            'order' => $order,
+            'store' => $store,
+            'cashierName' => $cashierName,
+            'exchangeRate' => 4100,
+             'qr' => $qrData['qr'],
+            'md5' => $qrData['md5']
         ];
-         dd($store);
     }
 
     public function getDataForPrint()
@@ -343,6 +289,68 @@ class OrderService implements IOrderService {
             'store'  => Stores::first(),
             'orders' => $this->orderRepo->getAllOrdersForPrint()
         ];
+    }
+
+
+
+    public function getInvoiceData($id) {
+        $order = $this->orderRepo->getOrderForInvoice($id);
+        $shopSetting = $this->orderRepo->getShopSetting(); // ទាញទិន្នន័យហាងចេញពី DB
+        $qrData = $this->generateKHQR($order->grand_total);
+
+        return [
+            'order' => $order,
+            'shopSetting' => $shopSetting, // បោះទៅឱ្យ View
+            'qr' => $qrData['qr'],
+            'md5' => $qrData['md5']
+        ];
+    }
+
+    public function generateKHQR($grandTotal, $exchangeRate = 4100)
+    {
+        $amountInRiel = round($grandTotal * $exchangeRate);
+
+        $bakongId = "chorn_savann@bkrt";
+        $merchantName = "SAVANN CHORN";
+        $city = "Phnom Penh";
+
+        $baidTag = "00" . str_pad(strlen($bakongId), 2, '0', STR_PAD_LEFT) . $bakongId;
+        $merchantInfo = "29" . str_pad(strlen($baidTag), 2, '0', STR_PAD_LEFT) . $baidTag;
+
+        $rawData = "000201010212" . $merchantInfo;
+        $rawData .= "520459995303116";
+        $rawData .= "54" . str_pad(strlen($amountInRiel), 2, '0', STR_PAD_LEFT) . $amountInRiel;
+        $rawData .= "5802KH";
+        $rawData .= "59" . str_pad(strlen($merchantName), 2, '0', STR_PAD_LEFT) . $merchantName;
+        $rawData .= "60" . str_pad(strlen($city), 2, '0', STR_PAD_LEFT) . $city;
+        $rawData .= "6304";
+
+        $crc = $this->calculateCRC16($rawData);
+        $qrRawData = $rawData . $crc;
+
+        $qr = null;
+        if ($qrRawData) {
+            $qr = QrCode::format('svg')
+                ->size(120)
+                ->color(0, 90, 146)
+                ->margin(1)
+                ->generate($qrRawData);
+        }
+
+        return [
+            'qr' => $qr,
+            'md5' => md5($qrRawData)
+        ];
+    }
+
+    private function calculateCRC16($data) {
+        $crc = 0xFFFF;
+        for ($i = 0; $i < strlen($data); $i++) {
+            $x = (($crc >> 8) ^ ord($data[$i])) & 0xFF;
+            $x ^= $x >> 4;
+            $crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
+        }
+        return strtoupper(str_pad(dechex($crc & 0xFFFF), 4, '0', STR_PAD_LEFT));
     }
 }
 

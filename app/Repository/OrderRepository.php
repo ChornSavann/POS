@@ -136,4 +136,12 @@ class OrderRepository implements IOrderRepository {
                     ->orderBy('order_date', 'desc')
                     ->get();
     }
+
+    public function getOrderForInvoice($id) {
+        return Order::with(['customer', 'orderItems.product', 'payments', 'seller'])->findOrFail($id);
+    }
+
+    public function getShopSetting() {
+        return Stores::first(); // ទាញយកជួរដេកទី១ នៃ Setting ហាង
+    }
 }

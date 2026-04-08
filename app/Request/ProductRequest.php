@@ -11,11 +11,11 @@ class ProductRequest extends FormRequest
         return true;
     }
 
+    
     public function rules(): array
     {
         // ចាប់យក ID ពី Route ដើម្បីប្រើក្នុង unique ignore ពេល update
-        $productId = $this->route('id') ?? $this->route('product');
-
+        $productId = $this->route('id') ?? $this->route('Product');
         return [
             'term' => 'nullable|string',
             'name'        => 'required|string|max:255',
@@ -23,7 +23,7 @@ class ProductRequest extends FormRequest
             'category_id' => 'required|exists:categories,id',
             'brand_id'    => 'required|exists:brands,id',
             'unit_id'     => 'required|exists:units,id',
-            'cost'        => 'required|numeric|min:0',
+            'cost'        => 'required|numeric|min:0', // ✅ OK
             'sale_unit_id'=> 'required',
             'purchase_unit_id' => 'required',
             'price'       => 'required|numeric|gt:0',
@@ -34,9 +34,7 @@ class ProductRequest extends FormRequest
         ];
     }
 
-    /**
-     * កែសម្រួលឈ្មោះ Field ពេលបង្ហាញ Error ជាភាសាខ្មែរ (Optional)
-     */
+
     public function attributes(): array
     {
         return [

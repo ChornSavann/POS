@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\DB;
 class UserController extends Controller
 {
     protected $userService;
-
-    // Inject IUserService តាមរយៈ Constructor
     public function __construct(IUserService $userService)
     {
         $this->userService = $userService;
@@ -24,23 +22,49 @@ class UserController extends Controller
 
     public function login()
     {
-        if (Auth::check()) {
-            // ប្តូរមកប្រើ URL path ដែលបងបានកំណត់ក្នុង web.php
-            return redirect()->intended('/');//dashboard
+        if (Auth::check())
+        {
+            // បើ Login ហើយ ឱ្យទៅកាន់ Dashboard ភ្លាម
+            return redirect()->route('dashboard');
         }
         return view('users.login');
     }
 
-
-    public function authenticate(UserRequest $request) {
-
-        if ($this->userService->login($request->validated())) {
+    public function authenticate(UserRequest $request)
+    {
+        // ១. ព្យាយាម Login តាមរយៈ Service
+       if ($this->userService->login($request->validated()))
+        {
+            // ២. បង្កើត Session ថ្មីដើម្បីសុវត្ថិភាព (Security)
             $request->session()->regenerate();
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            // ប្រសិនបើជា Admin ឱ្យទៅកាន់ Dashboard ធំដើម្បីមើលរបាយការណ៍សរុប
+            if ($user->hasRole('admin')) {
+                return redirect()->intended('/dashboard');
+            }
+
+            // ប្រសិនបើជា Cashier (អ្នកកាន់លុយ) ឱ្យទៅកាន់ផ្ទាំងលក់ (POS) តែម្តងដើម្បីភាពរហ័ស
+            if ($user->hasRole('cashier')) {
+                return redirect()->intended('/dashboard');
+            }
+
+            // ប្រសិនបើជា User ធម្មតា ឬបុគ្គលិកផ្នែកឃ្លាំង
+            if ($user->hasRole('user')) {
+                return redirect()->intended('/dashboard');
+            }
+
+            // ទិសដៅចុងក្រោយ បើមិនចូលលក្ខខណ្ឌខាងលើ
+
             return redirect()->intended('/');
         }
+
+        // ៤. ប្រសិនបើ Login បរាជ័យ
         return back()->withErrors([
-                'email' => 'អ៊ីមែល ឬលេខសម្ងាត់មិនត្រឹមត្រូវ។',
-            ])->onlyInput('email');
+            'email' => 'អ៊ីមែល ឬលេខសម្ងាត់មិនត្រឹមត្រូវ។',
+        ])->onlyInput('email');
     }
 
     public function register(UserRequest $request)
@@ -56,7 +80,7 @@ class UserController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/')->with('success', 'អ្នកបានចេញពីប្រព័ន្ធដោយជោគជ័យ!');
     }
 
     public function index()
@@ -67,7 +91,9 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        $roles=DB::table('roles')->get();
+        return view('users.create',compact('roles'));
+
     }
 
     public function store(UserRequest $request)
@@ -85,12 +111,12 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = $this->userService->getUserById($id);
-
+            $roles=DB::table('roles')->get();
         if (!$user) {
             return redirect()->route('users.index')->with('error', 'User not found.');
         }
 
-        return view('users.edit', compact('user'));
+        return view('users.edit', compact('user', 'roles'));
     }
 
 
@@ -115,4 +141,6 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Cannot delete user.');
         }
     }
+
+
 }

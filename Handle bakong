@@ -1,0 +1,138 @@
+ // function handleConfirmPayment() {
+        //     if (cart.length === 0) {
+        //         return Swal.fire('កំហុស', 'មិនមានទំនិញក្នុងកន្ត្រក', 'error');
+        //     }
+
+        //     $('#confirm-payment').prop('disabled', true); // prevent double click
+
+        //     // =========================
+        //     // 1️⃣ Get form values
+        //     // =========================
+        //     const subtotal = parseFloat($('#modal-subtotal').text().replace(/[^\d.-]/g, '')) || 0;
+        //     const receivedUsd = parseFloat($('#cash-dollar').val()) || 0;
+        //     const receivedRiel = parseFloat($('#cash-riel').val()) || 0;
+
+        //     const exchangeRate = 4000;
+        //     const totalReceived = receivedUsd + (receivedRiel / exchangeRate);
+        //     const debtCalc = subtotal - totalReceived;
+        //     const isAllowCredit = $('#allowCredit').is(':checked');
+
+        //     const customerId = parseInt($('#CustomersId').val()) || 0;
+        //     const paymentMethod = $('#paymentMethod').val();
+
+        //     let taxRateValue = typeof currentTaxPercent !== 'undefined' ? currentTaxPercent : 0;
+        //     let calculatedTaxAmount = (subtotal / (1 + (taxRateValue / 100))) * (taxRateValue / 100);
+
+        //     let totalItemDiscount = cart.reduce((sum, item) => {
+        //         return sum + ((item.price * (item.discountRate || 0) / 100) * item.qty);
+        //     }, 0);
+
+        //     let orderDiscount = parseFloat($('#discountAmount').val()) || 0;
+
+        //     // =========================
+        //     // 2️⃣ Prepare order data
+        //     // =========================
+        //     let orderData = {
+        //         _token: '{{ csrf_token() }}',
+        //         table_id: typeof currentTableId !== 'undefined' ? currentTableId : null,
+        //         customer_id: customerId || 0,
+        //         tax_rate: taxRateValue,
+        //         tax_amount: calculatedTaxAmount.toFixed(2),
+        //         subtotal: subtotal,
+        //         // discount: parseFloat($('#discountAmount').val()) || 0,
+        //         // បូកបញ្ចូលគ្នាទាំង Item Discount និង Order Discount
+        //         discount: orderDiscount,
+        //         total_discount: (totalItemDiscount + orderDiscount).toFixed(2),
+        //         received_usd: receivedUsd,
+        //         received_riel: receivedRiel,
+        //         balance_dollar: debtCalc < 0 ? Math.abs(debtCalc).toFixed(2) : 0,
+        //         payment_method: $('#paymentMethod').val(),
+        //         is_credit: isAllowCredit ? 1 : 0,
+        //         debt_amount: debtCalc > 0 ? debtCalc.toFixed(2) : 0,
+
+        //         items: cart.map(item => ({
+        //             id: item.id,
+        //             qty: item.qty,
+        //             price: item.price,
+        //             discount: item.discount || 0
+        //         }))
+        //     };
+        //     // បើមិនមែនបង់តាម Bakong (បង់សាច់ប្រាក់ ឬកាត)
+        //     if (paymentMethod !== 'Bakong') {
+        //         $.post("{{ route('orders.checkout') }}", orderData) // ប្រើ route checkout ធម្មតា
+        //             .done(res => {
+        //                 if (res.success) {
+        //                     printInvoice(res.order_id);
+        //                 }
+        //             });
+        //         return;
+        //     }
+
+        //     // បើបង់តាម Bakong QR
+        //     Swal.fire({
+        //         title: 'ស្កេន QR ដើម្បីបង់ប្រាក់',
+        //         html: '<div class="p-3"><img id="bakong-qr" style="width:250px; border: 1px solid #eee; border-radius: 10px;"><br><br><div class="spinner-border text-primary" role="status"></div><p class="mt-2">កំពុងរង់ចាំការបង់ប្រាក់...</p></div>',
+        //         showConfirmButton: false,
+        //         allowOutsideClick: false
+        //     });
+
+        //     // បង្កើត QR
+        //     fetch('{{ route('bakong.generate') }}', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        //             },
+        //             body: JSON.stringify({
+        //                 amount: subtotal * 4000
+        //             })
+        //         })
+        //         .then(res => res.json())
+        //         .then(data => {
+        //             if (!data.qr) throw new Error('QR generation failed');
+        //             document.getElementById('bakong-qr').src = data.qr;
+
+        //             // ចាប់ផ្ដើម Check ប្រតិបត្តិការ (Polling)
+        //             let interval = setInterval(() => {
+        //                 fetch('{{ route('bakong.verify') }}', { // ប្រើ Route ដែល Verify + Checkout
+        //                         method: 'POST',
+        //                         headers: {
+        //                             'Content-Type': 'application/json',
+        //                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        //                         },
+        //                         body: JSON.stringify({
+        //                             md5: data.md5,
+        //                             ...
+        //                             orderData // ផ្ញើ Data Order ទៅជាមួយដើម្បីឱ្យ Controller បង្កើត Order ពេលបង់រួច
+        //                         })
+        //                     })
+        //                     .then(res => res.json())
+        //                     .then(res => {
+        //                         if (res.success && res.order_id) {
+        //                             clearInterval(interval);
+        //                             Swal.close();
+        //                             printInvoice(res.order_id);
+        //                         }
+        //                     });
+        //             }, 3000);
+
+        //             // អស់ពេល ២ នាទី (Timeout)
+        //             setTimeout(() => {
+        //                 clearInterval(interval);
+        //             }, 120000);
+        //         })
+        //         .catch(err => {
+        //             $('#confirm-payment').prop('disabled', false);
+        //             Swal.fire('កំហុស', 'មិនអាចបង្កើត QR បានទេ', 'error');
+        //         });
+        // }
+
+
+
+        // function printInvoice(orderId) {
+        //     let frame = document.createElement('iframe');
+        //     frame.style.display = 'none';
+        //     frame.src = '/order/invoice/' + orderId;
+        //     document.body.appendChild(frame);
+        //     setTimeout(() => location.reload(), 2000);
+        // }

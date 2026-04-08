@@ -30,9 +30,38 @@ class UserRequest extends FormRequest
 
     //     return $rules;
     // }
+    // public function rules(): array
+    // {
+    //     // ១. ប្រសិនបើជាការ Login (ឆែកតាមឈ្មោះ Route ឬ URL)
+    //     if ($this->is('login*') || $this->routeIs('login.post')) {
+    //         return [
+    //             'email'    => 'required|email',
+    //             'password' => 'required|string',
+    //         ];
+    //     }
+
+    //     // ២. ប្រសិនបើជាការ Create ឬ Update User (កូដចាស់របស់បង)
+    //     $userId = $this->route('id') ?? $this->route('user');
+
+    //     $rules = [
+    //         'name'    => 'required|string|max:255',
+    //         'email'   => 'required|email|unique:users,email,' . ($userId ?? 'NULL'),
+    //         'phone'   => 'nullable|string|max:20',
+    //         'address' => 'nullable|string|max:500',
+    //     ];
+
+    //     if ($this->isMethod('post')) {
+    //         $rules['password'] = 'required|string|min:8|confirmed';
+    //     } else {
+    //         $rules['password'] = 'nullable|string|min:8|confirmed';
+    //     }
+
+    //     return $rules;
+    // }
+
     public function rules(): array
     {
-        // ១. ប្រសិនបើជាការ Login (ឆែកតាមឈ្មោះ Route ឬ URL)
+        // ១. ប្រសិនបើជាការ Login
         if ($this->is('login*') || $this->routeIs('login.post')) {
             return [
                 'email'    => 'required|email',
@@ -40,16 +69,27 @@ class UserRequest extends FormRequest
             ];
         }
 
-        // ២. ប្រសិនបើជាការ Create ឬ Update User (កូដចាស់របស់បង)
+        // ២. ប្រសិនបើជាការ Create ឬ Update User
         $userId = $this->route('id') ?? $this->route('user');
 
         $rules = [
-            'name'    => 'required|string|max:255',
-            'email'   => 'required|email|unique:users,email,' . ($userId ?? 'NULL'),
-            'phone'   => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|email|unique:users,email,' . ($userId ?? 'NULL'),
+            'phone'     => 'nullable|string|max:20',
+            'address'   => 'nullable|string|max:500',
+            'is_active' => 'nullable|boolean', // បន្ថែមការឆែក status
+
+            // បន្ថែមការ Validate role_id ឱ្យមានពិតប្រាកដក្នុង table roles
+            'role_id'   => 'required|exists:roles,id',
+            'profile_picture' => [
+                    'nullable',           // មិនបង្ខំថាត្រូវតែមានរូបទេ
+                    'image',              // ត្រូវតែជាប្រភេទរូបភាព (jpg, jpeg, png, bmp, gif, svg, webp)
+                    'mimes:jpeg,png,jpg', // កំណត់ប្រភេទ extension ឱ្យច្បាស់លាស់
+                    'max:2048',           // កំណត់ទំហំអតិបរមា 2MB (2048 KB)
+                ],
         ];
 
+        // ឆែក Password សម្រាប់ Create (Required) និង Update (Optional)
         if ($this->isMethod('post')) {
             $rules['password'] = 'required|string|min:8|confirmed';
         } else {

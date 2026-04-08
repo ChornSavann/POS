@@ -15,4 +15,7 @@ interface IOrderService {
     public function changeTableStatus($tableId, $status);
     public function getPrintData($id);
    public function getDataForPrint();
+   //
+   public function generateKHQR($grandTotal, $exchangeRate = 4100);
+    public function getInvoiceData($id);
 }

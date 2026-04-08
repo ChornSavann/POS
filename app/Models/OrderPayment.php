@@ -38,4 +38,10 @@ class OrderPayment extends Model
     {
         return $this->belongsTo(Order::class);
     }
+    
+    public function bank()
+    {
+        // កំណត់ថា payment_method គឺជា Foreign Key ទៅកាន់ Table Banks
+        return $this->belongsTo(Bank::class, 'payment_method');
+    }
 }

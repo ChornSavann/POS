@@ -50,12 +50,16 @@ use App\Repository\IRepository\IBankRepository;
 use App\Repository\BankRepository;
 use App\Repository\ExpenseTypeRepository;
 use App\Repository\IRepository\IExpenseTypeRepository;
+use App\Repository\IRepository\IRepostRepository;
+use App\Repository\RepostRepository;
 use App\Service\ExpenseTypeService as ServiceExpenseTypeService;
 use App\Service\IService\IExpenseTypeService;
 use App\Service\ProductService as ServiceProductService;
 use Illuminate\Support\Facades\View;
 use App\Service\ProductService;
 use App\Service\ExpenseTypeService;
+use App\Service\IService\IReportService;
+use App\Service\ReportService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -218,6 +222,17 @@ class AppServiceProvider extends ServiceProvider
             IExpenseTypeService::class,
             ExpenseTypeService::class
         );
+
+        $this->app->bind(
+            IRepostRepository::class,
+            RepostRepository::class
+        );
+        $this->app->bind(
+            IReportService::class,
+            ReportService::class
+        );
+
+        // SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
     }
 
     /**

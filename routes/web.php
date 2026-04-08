@@ -20,22 +20,38 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TableController;
-
-// Route::get('login', [UserController::class, 'index'])->name('user.index');
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/test', [TestController::class, 'index'])->name('test.index');
-
-// Route::middleware(['auth'])->group(function () {
-
-//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-//     Route::middleware(['role:admin'])->group(function () {
-//         // រាល់ URL ក្នុងនេះ ចូលបានតែ Admin ប៉ុណ្ណោះ
-//         Route::resource('units', UnitController::class);
-//     });
+use App\Http\Controllers\CashsessionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 
-//     // Route ផ្សេងៗទៀត...
-// });
+Route::get('/', [UserController::class, 'login'])->name('login');
+Route::post('/login', [UserController::class, 'authenticate'])->name('login.post');
+Route::middleware(['auth'])->group(function ()
+{
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // បើចង់ឱ្យចូល domain.com/ ហើយលោតទៅ dashboard តែម្តង
+    Route::get('/home', function() {
+        return redirect()->route('dashboard');
+    });
+
+    // Logout
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+    // Route ផ្សេងៗដែលគ្រប់គ្នា (Admin/Cashier) អាចចូលបាន
+    Route::get('/pos', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
+    // ... ដាក់ Route ផ្សេងៗទៀតនៅទីនេះ
+    // Route::resource('permissions', PermissionController::class);
+});
+
+
+//perission
+Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
+Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
+Route::put('/permissions/{id}', [PermissionController::class, 'update'])->name('permissions.update');
+Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
 
 
 // បង្ហាញបញ្ជី User ទាំងអស់
@@ -45,10 +61,8 @@ Route::post('/users', [UserController::class, 'store'])->name('users.store');
 Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
 Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
 Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-Route::get('/login', [UserController::class, 'login'])->name('users.login');
-// Route::get('/login', [UserController::class, 'login'])->name('login');
-Route::post('/login', [UserController::class, 'authenticate'])->name('login.post');
-// Register Routes (បើបងចង់ឱ្យមានការចុះឈ្មោះ)
+// Route::get('/login', [UserController::class, 'login'])->name('users.login');
+// Route::post('/login', [UserController::class, 'authenticate'])->name('login.post');
 Route::post('/register', [UserController::class, 'register'])->name('register.post');
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
@@ -150,6 +164,9 @@ Route::get('/list/sale/',[OrderController::class,'listOrder'])->name('order.list
 Route::post('/orders/pay-debt', [OrderController::class, 'payDebt'])->name('orders.pay-debt');
 Route::get('/orders/print/{id}', [OrderController::class, 'printInvoice'])->name('orders.print');
 Route::get('/orders/print-all', [OrderController::class, 'printAll'])->name('orders.printAll');
+// Route::post('/bakong/verify', [OrderController::class, 'veryfitranfer'])->name('bakong.verify');
+
+
 // Bank Routes
 Route::prefix('bank')->group(function () {
 
@@ -178,7 +195,28 @@ Route::prefix('item-expenses')->name('item_expense.')->group(function () {
        Route::put('/expense-types/{id}', [ExpenseTypeController::class, 'update'])->name('expense_types.update');
        Route::delete('/expense-types/{id}', [ExpenseTypeController::class, 'destroy'])->name('expense_types.destroy');
 
-// Group សម្រាប់របាយការណ៍ទាំងអស់
+
+
+    Route::middleware(['auth'])->group(function () {
+
+        // ១. Route សម្រាប់បង្ហាញ Form បើកបញ្ជី
+        Route::get('/cash-session/create', [CashSessionController::class, 'create'])->name('cash-session.create');
+
+        // ២. Route សម្រាប់រក្សាទុកទិន្នន័យពេលចុច "បើកបញ្ជី"
+        Route::post('/cash-session/store', [CashSessionController::class, 'store'])->name('cash-session.store');
+
+        // ៣. Route សម្រាប់បង្ហាញ Form បិទបញ្ជី (Closing Form)
+        Route::get('/cash-session/edit', [CashSessionController::class, 'edit'])->name('cash-session.edit');
+
+        // ៤. Route សម្រាប់ Update ទិន្នន័យពេលចុច "បិទបញ្ជី"
+       // ត្រូវតែមាន {id} បែបនេះ
+        Route::put('cash-session/{id}', [CashsessionController::class, 'update'])->name('cash-session.update');
+        Route::get('/reports/cash-sessions', [CashsessionController::class, 'report'])->name('reports.cashSessions');
+
+    });
+
+
+    // Group សម្រាប់របាយការណ៍ទាំងអស់
     Route::prefix('reports')->name('reports.')->group(function () {
 
         // Route សម្រាប់របាយការណ៍ប្រចាំថ្ងៃ
@@ -186,6 +224,47 @@ Route::prefix('item-expenses')->name('item_expense.')->group(function () {
       // Route របស់បង
         Route::get('/invoice/{id}', [ReportController::class, 'printInvoice'])->name('invoice');
 
-        // បងអាចបន្ថែមរបាយការណ៍ផ្សេងទៀតនៅទីនេះនាពេលក្រោយ
-        // Route::get('/monthly', [ReportController::class, 'Monthly'])->name('monthly');
+        Route::get('/purchase', [ReportController::class, 'index'])->name('index');
+        Route::get('/purchase/{id}', [ReportController::class, 'show'])->name('show');
+        Route::get('/stockAdjustmentReport',[ReportController::class,'stockAdjustmentReport'])->name('stockAdjustmentReport');
+        Route::get('/performance', [ReportController::class, 'performanceReport'])
+         ->name('performance');
+         Route::get('/stock-inventory', [ReportController::class, 'stockInventory'])
+         ->name('stockInventory');
+         Route::get('/sales', [ReportController::class, 'salesReport'])->name('sales');
+          // Route សម្រាប់របាយការណ៍ទំនិញលក់ដាច់ និងលក់មិនដាច់
+        Route::get('/product-performance', [ReportController::class, 'productPerformanceReport'])
+            ->name('product_performance');
+
+        // Route សម្រាប់របាយការណ៍ចំណេញ-ខាត (P&L) ដែលបងមានស្រាប់
+        Route::get('/profit-loss', [ReportController::class, 'profitLossReport'])
+            ->name('profit_loss');
+        // Route សម្រាប់របាយការណ៍កែសម្រួលស្តុក
+        Route::get('monthly', [ReportController::class, 'monthlySalesReport'])->name('monthly');
+        Route::get('monthly-details/{month}/{year}', [ReportController::class, 'monthlyDetails'])->name('monthly_details');
+
+
+            // កែពី /reports/weekly/{year} មកត្រឹម /reports/weekly
+        Route::get('/weekly', [ReportController::class, 'getWeeklyReport'])->name('weekly');
+
     });
+
+
+    Route::middleware(['auth', 'role:admin'])->group(function ()
+    {
+
+        // Route សម្រាប់គ្រប់គ្រង Role និងការគ្រីសយក Permission
+        Route::resource('roles', RoleController::class);
+
+        // Route បន្ថែមសម្រាប់កំណត់ Role ឱ្យ User ម្នាក់ៗ (Optional)
+        Route::get('users/{user}/permissions', [UserController::class, 'editPermissions'])->name('users.permissions.edit');
+        Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions.update');
+        Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+        Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
+        Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
+        Route::put('/permissions/{id}', [PermissionController::class, 'update'])->name('permissions.update');
+        Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    });
+
+

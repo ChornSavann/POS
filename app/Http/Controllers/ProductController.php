@@ -71,10 +71,23 @@ class ProductController extends Controller
         return view('products.edit', array_merge(['product' => $product], $formData));
     }
 
+    // public function update(ProductRequest $request, $id)
+    // {
+    //     $data['status'] = $request->has('status') ? 1 : 0; // បង្ខំម្តងទៀតនៅទីនេះ
+    //     $this->productService->updateProduct($id, $request->validated());
+    //     return redirect()->route('products.index')
+    //         ->with('success', 'ទិន្នន័យទំនិញត្រូវបានកែប្រែរួចរាល់! ✅');
+    // }
     public function update(ProductRequest $request, $id)
     {
-        $data['status'] = $request->has('status') ? 1 : 0; // បង្ខំម្តងទៀតនៅទីនេះ
-        $this->productService->updateProduct($id, $request->validated());
+        $data = $request->validated(); // ✅ ទាញ data មក
+
+        // ✅ កែ status នៅក្នុង $data
+        $data['status'] = $request->has('status') ? 1 : 0;
+    
+        // ✅ ប្រើ $data (NOT validated() directly)
+        $this->productService->updateProduct($id, $data);
+
         return redirect()->route('products.index')
             ->with('success', 'ទិន្នន័យទំនិញត្រូវបានកែប្រែរួចរាល់! ✅');
     }

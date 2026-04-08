@@ -22,8 +22,8 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.4)),
-                url("{{ asset('Image/stores/bg.jpg') }}") center/cover no-repeat fixed;
+            /* background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.4)),
+                url("{{ asset('Image/stores/bg.jpg') }}") center/cover no-repeat fixed; */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -213,6 +213,213 @@
                 position: relative;
                 width: 100%;
                 padding: 40px 25px;
+            }
+        }
+
+        /* បន្ថែម ឬជំនួសក្នុងផ្នែក <style> */
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            --accent-color: #3b82f6;
+            --bg-body: #f1f5f9;
+        }
+
+        /* កែសម្រួល auth-container ឱ្យសមស្របនឹង Screen ច្រើនប្រភេទ */
+        .auth-container {
+            width: 1000px;
+            /* រាងធំជាងមុនបន្តិចឱ្យមើលទៅស្រឡះ */
+            max-width: 95%;
+            min-height: 600px;
+            height: auto;
+            background: rgba(255, 255, 255, 1);
+            border-radius: 28px;
+            display: flex;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* កែសម្រួល Toggle Panel ឱ្យមានភាពទាក់ទាញជាងមុន */
+        .toggle-panel {
+            /* background-image: url("https://www.transparenttextures.com/patterns/cubes.png"), var(--primary-gradient); */
+            border-radius: 0 24px 24px 0;
+        }
+
+        .auth-container.active .toggle-panel {
+            border-radius: 24px 0 0 24px;
+        }
+
+        /* បន្ថែម Style សម្រាប់ Mobile ឱ្យអាច switch បាន (សំខាន់ខ្លាំង) */
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                height: auto;
+                min-height: unset;
+                margin: 20px 0;
+            }
+
+            .form-section {
+                position: relative;
+                width: 100% !important;
+                transform: none !important;
+                opacity: 1 !important;
+                display: none;
+                /* លាក់មួយ សិន */
+                padding: 40px 20px;
+            }
+
+            /* បង្ហាញ Form តាមស្ថានភាព active */
+            .auth-container:not(.active) .login-section {
+                display: flex;
+            }
+
+            .auth-container.active .register-section {
+                display: flex;
+            }
+
+            .toggle-panel {
+                position: relative;
+                left: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                transform: none !important;
+                padding: 30px 20px;
+                order: 2;
+                /* ដាក់ឱ្យនៅខាងក្រោមគេបង្អស់ */
+                border-radius: 0 0 24px 24px !important;
+            }
+        }
+
+        /* កែសម្រួល Input ឱ្យមើលទៅ Premium */
+        .input-group {
+            border: 1.5px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .input-group:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+    </style>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --accent-color: #2563eb;
+            --bg-body: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+
+
+        /* កែសម្រួលទំហំឱ្យតូចជាងមុន (ពី 950px មក 850px និងកម្ពស់មក 580px) */
+        .auth-container {
+            width: 850px;
+            height: 580px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .form-section {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            padding: 40px 45px;
+            /* បន្ថយ padding ឱ្យសមនឹងទំហំថ្មី */
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* រក្សា Logic ដដែល */
+        .login-section {
+            left: 0;
+            z-index: 2;
+        }
+
+        .register-section {
+            left: 0;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .auth-container.active .login-section {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .auth-container.active .register-section {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+        }
+
+        .toggle-panel {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10;
+        }
+
+        .auth-container.active .toggle-panel {
+            transform: translateX(-100%);
+        }
+
+        /* កែសម្រួលទំហំអក្សរ និង Input ឱ្យរាងស្រឡះជាងមុន */
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .brand-logo {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-control {
+            height: 44px;
+            /* បន្ថយ កម្ពស់ input បន្តិច */
+            font-size: 0.9rem;
+        }
+
+        .btn-main {
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive សម្រាប់ Mobile */
+        @media (max-width: 768px) {
+            .auth-container {
+                width: 100%;
+                height: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .toggle-panel {
+                display: none;
+            }
+
+            .form-section {
+                position: relative;
+                width: 100%;
+                padding: 30px 20px;
             }
         }
     </style>

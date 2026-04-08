@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="km">
+
 <head>
     <meta charset="utf-8" />
     <title>Invoice - {{ $order->invoice_no }}</title>
@@ -16,7 +17,8 @@
         body {
             background: #f4f7f6;
             font-family: 'Hanuman', serif;
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             color: var(--text-main);
         }
 
@@ -25,11 +27,16 @@
             margin: 20px auto;
             background: #fff;
             padding: 15mm;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
 
-        thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
 
         .brand-box h2 {
             font-size: 18px;
@@ -110,13 +117,29 @@
         }
 
         @media print {
-            body { background: none; }
-            .print-container { width: 100%; margin: 0; padding: 0; box-shadow: none; }
-            .no-print { display: none; }
-            @page { size: A4; margin: 10mm; }
+            body {
+                background: none;
+            }
+
+            .print-container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="print-container">
@@ -124,14 +147,14 @@
             <thead>
                 <tr>
                     <td>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <div class="brand-box">
                                 {{-- <img src="{{ asset('assets/img/no-image.png') }}" onerror="this.src='https://via.placeholder.com/150x60?text=LOGO'" height="60" /> --}}
                                 <div class="brand-box">
-                                    @if($store && $store->logo)
+                                    @if ($store && $store->logo)
                                         <img src="{{ asset('Image/stores/' . $store->logo) }}"
-                                            onerror="this.src='{{ asset('assets/img/no-image.png') }}'"
-                                            height="60" />
+                                            onerror="this.src='{{ asset('assets/img/no-image.png') }}'" height="60" />
                                     @else
                                         <img src="{{ asset('assets/img/no-image.png') }}" height="60" />
                                     @endif
@@ -151,7 +174,8 @@
                                 <h1>វិក្កយបត្រ</h1>
                                 <div style="font-size: 14px; margin-top: 8px;">
                                     លេខ: <strong>#{{ $order->invoice_no }}</strong><br>
-                                    កាលបរិច្ឆេទ: <strong>{{ \Carbon\Carbon::parse($order->order_date)->format('d-M-Y') }}</strong>
+                                    កាលបរិច្ឆេទ:
+                                    <strong>{{ \Carbon\Carbon::parse($order->order_date)->format('d-M-Y') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -159,8 +183,10 @@
                         <div class="info-grid">
                             <div class="info-card">
                                 <h4>អតិថិជន / Bill To</h4>
-                                <p style="margin:0; font-weight: bold;">{{ $order->customer->name ?? 'អតិថិជនទូទៅ' }}</p>
-                                <p style="margin:3px 0 0; font-size: 13px;">ទូរស័ព្ទ៖ {{ $order->customer->phone ?? 'N/A' }}</p>
+                                <p style="margin:0; font-weight: bold;">{{ $order->customer->name ?? 'អតិថិជនទូទៅ' }}
+                                </p>
+                                <p style="margin:3px 0 0; font-size: 13px;">ទូរស័ព្ទ៖
+                                    {{ $order->customer->phone ?? 'N/A' }}</p>
                             </div>
                             <div class="info-card">
                                 <h4>ព័ត៌មានលក់ / Sales Info</h4>
@@ -187,19 +213,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($order->orderItems as $index => $item)
-                                <tr>
-                                    <td style="text-align: center;">{{ $index + 1 }}</td>
-                                    <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                    <td style="text-align: center;">{{ $item->qty }}</td>
-                                    <td style="text-align: right;">${{ number_format($item->price, 2) }}</td>
-                                    <td style="text-align: center; color: red;">
-                                        {{ $item->discount > 0 ? '$'.number_format($item->discount, 2) : '0' }}
-                                    </td>
-                                    <td style="text-align: right; font-weight: bold;">
-                                        ${{ number_format($item->total, 2) }}
-                                    </td>
-                                </tr>
+                                @foreach ($order->orderItems as $index => $item)
+                                    <tr>
+                                        <td style="text-align: center;">{{ $index + 1 }}</td>
+                                        <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                        <td style="text-align: center;">{{ $item->qty }}</td>
+                                        <td style="text-align: right;">${{ number_format($item->price, 2) }}</td>
+                                        <td style="text-align: center; color: red;">
+                                            {{ $item->discount > 0 ? '$' . number_format($item->discount, 2) : '0' }}
+                                        </td>
+                                        <td style="text-align: right; font-weight: bold;">
+                                            ${{ number_format($item->total, 2) }}
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -207,51 +233,83 @@
                 </tr>
             </tbody>
 
-            <tfoot>
-                <tr>
-                    <td>
-                        <div style="display: flex; justify-content: space-between; margin-top: 30px; page-break-inside: avoid;">
-                            <div style="text-align: center; border: 1px solid #ddd; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 11px; font-weight: bold; margin-bottom: 5px;">Scan for Verification</div>
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data={{ route('orders.print', $order->id) }}" width="90" />
-                            </div>
+           <tfoot>
+    <tr>
+        <td>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 25px; page-break-inside: avoid;">
 
-                            <div style="width: 300px;">
-                                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
-                                    <span>សរុបអនុបូក:</span>
-                                    <span>${{ number_format($order->sub_total, 2) }}</span>
-                                </div>
-                                @if($order->total_discount > 0)
-                                <div style="display: flex; justify-content: space-between; padding: 4px 0; color: red;">
-                                    <span>បញ្ចុះតម្លៃសរុប:</span>
-                                    <span>-${{ number_format($order->total_discount, 2) }}</span>
-                                </div>
-                                @endif
-                                <div class="grand-total-box">
-                                    <div style="display: flex; justify-content: space-between; font-size: 16px;">
-                                        <span>សរុបរួម (USD):</span>
-                                        <span>${{ number_format($order->grand_total, 2) }}</span>
-                                    </div>
-                                </div>
-                                <div style="text-align: right; margin-top: 10px; font-weight: bold; color: var(--primary-color); font-size: 17px; border-bottom: 2px double var(--primary-color);">
-                                    សរុបជាប្រាក់រៀល: {{ number_format($order->grand_total * $rate, 0) }} ៛
-                                </div>
-                            </div>
+                <div style="text-align: center; border: 1.5px solid #005a92; padding: 12px; border-radius: 12px; width: 140px; background: #fff; margin: 0;">
+                    <div style="font-size: 11px; font-weight: bold; color: #005a92; margin-bottom: 8px; text-transform: uppercase;">
+                        BAKONG KHQR
+                    </div>
+
+                    @if (isset($qr))
+                        <div style="width: 110px; height: 110px; margin: 0 auto; display: block;">
+                            {{-- Render SVG KHQR --}}
+                            {!! $qr !!}
                         </div>
 
-                        <div class="signature-section">
-                            <div><div class="sig-line"></div>អតិថិជន</div>
-                            <div><div class="sig-line"></div>អ្នកលក់</div>
-                            <div><div class="sig-line"></div>អ្នកដឹកជញ្ជូន</div>
+                        <div style="margin-top: 8px; font-weight: bold; color: #333; font-size: 10px; text-transform: uppercase;">
+                            {{ $order->seller->name ?? 'CHORN SAVANN' }}
                         </div>
-                    </td>
-                </tr>
-            </tfoot>
+                    @else
+                        <div style="font-size: 10px; color: red; border: 1px dashed red; padding: 10px; border-radius: 8px;">
+                            QR Error
+                        </div>
+                    @endif
+                </div>
+
+                <div style="width: 280px;">
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px;">
+                        <span>សរុបអនុបូក:</span>
+                        <span style="font-weight: bold;">${{ number_format($order->sub_total, 2) }}</span>
+                    </div>
+
+                    @if (isset($order->total_discount) && $order->total_discount > 0)
+                        <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #dc3545; font-size: 12px;">
+                            <span>បញ្ចុះតម្លៃសរុប:</span>
+                            <span style="font-weight: bold;">-${{ number_format($order->total_discount, 2) }}</span>
+                        </div>
+                    @endif
+
+                    <div class="grand-total-box" style="background:  #1a237e; padding: 8px; border-radius: 8px; margin-top: 5px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                            <span>សរុបរួម (USD):</span>
+                            <span style="color: #28a745;">${{ number_format($order->grand_total, 2) }}</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 10px; font-weight: bold; color: var(--primary-color, #005a92); font-size: 15px; border-bottom: 2px double var(--primary-color, #005a92); padding-bottom: 3px;">
+                        សរុបជាប្រាក់រៀល: {{ number_format($order->grand_total * ($exchangeRate ?? 4100), 0) }} ៛
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-section" style="display: flex; justify-content: space-between; margin-top: 40px; page-break-inside: avoid; text-align: center; font-size: 12px;">
+                <div>
+                    <div class="sig-line" style="border-top: 1px dashed #000; width: 120px; margin-bottom: 8px;"></div>
+                    អតិថិជន
+                </div>
+                <div>
+                    <div class="sig-line" style="border-top: 1px dashed #000; width: 120px; margin-bottom: 8px;"></div>
+                    អ្នកលក់
+                </div>
+                <div>
+                    <div class="sig-line" style="border-top: 1px dashed #000; width: 120px; margin-bottom: 8px;"></div>
+                    អ្នកដឹកជញ្ជូន
+                </div>
+            </div>
+        </td>
+    </tr>
+</tfoot>
         </table>
     </div>
 
     <div class="no-print" style="text-align: center; margin: 20px;">
-        <button onclick="window.print()" style="padding: 10px 30px; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">បោះពុម្ពវិក្កយបត្រ (Print)</button>
+        <button onclick="window.print()"
+            style="padding: 10px 30px; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">បោះពុម្ពវិក្កយបត្រ
+            (Print)</button>
     </div>
 </body>
+
 </html>

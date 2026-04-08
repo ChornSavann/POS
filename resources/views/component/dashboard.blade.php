@@ -104,7 +104,7 @@
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-3 justify-content-center mb-3">
-                <a href="#" class="quick-link-item"><i class="fa fa-desktop"></i><span>POS System</span></a>
+                <a href="{{ route('order.index') }}" class="quick-link-item"><i class="fa fa-desktop"></i><span>POS System</span></a>
                 <a href="#" class="quick-link-item"><i class="fa fa-box-open"></i><span>Inventory</span></a>
                 <a href="#" class="quick-link-item"><i class="fa fa-file-invoice-dollar"></i><span>List Sales</span></a>
                 <a href="#" class="quick-link-item"><i class="fa fa-receipt"></i><span>Orders</span></a>

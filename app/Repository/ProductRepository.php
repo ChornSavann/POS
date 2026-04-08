@@ -72,7 +72,8 @@ class ProductRepository implements IProductRepository {
         return $this->model->create($data);
     }
 
-    public function update($id, array $data) {
+    public function update($id, array $data)
+    {
         $product = $this->find($id);
         $product->update($data);
         return $product;
