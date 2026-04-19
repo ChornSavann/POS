@@ -365,11 +365,24 @@
                                     <p class="text-danger fw-bold">Close Register</p>
                                 </a>
                             </li>
-
+                            <li class="nav-item">
+                                <a href="{{ route('reports.cashSessions') }}"
+                                    class="nav-link {{ Request::is('reports/cash-sessions*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-history text-info"></i>
+                                    <p>Cash Session Report</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a href="{{ route('reports.profit_loss') }}"
                                     class="nav-link {{ Request::is('reports/profit-loss*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-chart-line text-success"></i>
+                                    <p>Profit & Loss</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('reports.profit_loss_report') }}"
+                                    class="nav-link {{ Route::is('reports.profit_loss_report') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-balance-scale text-success"></i>
                                     <p>Profit & Loss</p>
                                 </a>
                             </li>

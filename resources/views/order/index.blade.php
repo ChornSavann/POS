@@ -1544,58 +1544,105 @@
             };
 
             // ៥. បាញ់ AJAX
+            // $.ajax({
+            //     url: "{{ route('orders.checkout') }}",
+            //     type: "POST",
+            //     data: orderData,
+            //     beforeSend: function() {
+            //         $('#confirm-payment').prop('disabled', true).text('កំពុងរក្សាទុក...');
+            //     },
+            //     // success: function(res) {
+            //     //     if(res.success) {
+            //     //         localStorage.removeItem('hold_pos_' + currentTableId);
+            //     //         let printFrame = document.createElement('iframe');
+            //     //         printFrame.style.display = 'none';
+            //     //         printFrame.src = '/order/invoice/' + res.order_id;
+            //     //         document.body.appendChild(printFrame);
+
+            //     //         printFrame.onload = function() {
+            //     //             printFrame.contentWindow.focus();
+            //     //             printFrame.contentWindow.print();
+            //     //             setTimeout(() => { location.reload(); }, 1000);
+            //     //         };
+            //     //     } else {
+            //     //         Swal.fire('បរាជ័យ', res.message || 'មានបញ្ហាក្នុងការរក្សាទុក', 'error');
+            //     //         $('#confirm-payment').prop('disabled', false).text('✔️ បង់ប្រាក់ & បោះពុម្ព');
+            //     //     }
+            //     // },
+            //     success: function(res) {
+            //         if (res.success) {
+            //             localStorage.removeItem('hold_pos_' + currentTableId);
+
+            //             let printFrame = document.createElement('iframe');
+            //             printFrame.style.display = 'none';
+            //             printFrame.src = '/order/invoice/' + res.order_id;
+            //             document.body.appendChild(printFrame);
+
+            //             printFrame.onload = function() {
+            //                 // បន្ថែម setTimeout ដើម្បីរង់ចាំឱ្យរូបភាព QR រៀបចំខ្លួនរួចរាល់
+            //                 setTimeout(() => {
+            //                     try {
+            //                         printFrame.contentWindow.focus();
+            //                         printFrame.contentWindow.print();
+
+            //                         // បន្ទាប់ពីចុច Print រួច (មិនថា Cancel ឬ OK) ទើប Refresh ទំព័រ
+            //                         setTimeout(() => {
+            //                             // លុប iframe ចោលវិញដើម្បីកុំឱ្យធ្ងន់ Browser
+            //                             document.body.removeChild(printFrame);
+            //                             location.reload();
+            //                         }, 3000);
+            //                     } catch (e) {
+            //                         console.error("Printing failed:", e);
+            //                         location.reload();
+            //                     }
+            //                 }, 800); // រង់ចាំ 0.8 វិនាទី (អាចដំឡើងដល់ 1000 បើ Internet យឺត)
+            //             };
+            //         } else {
+            //             Swal.fire('បរាជ័យ', res.message || 'មានបញ្ហាក្នុងការរក្សាទុក', 'error');
+            //             $('#confirm-payment').prop('disabled', false).text('✔️ បង់ប្រាក់ & បោះពុម្ព');
+            //         }
+            //     },
+            //     error: function(xhr) {
+            //         Swal.fire('បរាជ័យ', 'មានបញ្ហាបច្ចេកទេស (Server Error)', 'error');
+            //         $('#confirm-payment').prop('disabled', false).text('✔️ បង់ប្រាក់ & បោះពុម្ព');
+            //     }
+            // });
             $.ajax({
                 url: "{{ route('orders.checkout') }}",
                 type: "POST",
+                // បន្ថែម Headers ដើម្បីការពារ Error 419 ឬ 405
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 data: orderData,
                 beforeSend: function() {
                     $('#confirm-payment').prop('disabled', true).text('កំពុងរក្សាទុក...');
                 },
-                // success: function(res) {
-                //     if(res.success) {
-                //         localStorage.removeItem('hold_pos_' + currentTableId);
-                //         let printFrame = document.createElement('iframe');
-                //         printFrame.style.display = 'none';
-                //         printFrame.src = '/order/invoice/' + res.order_id;
-                //         document.body.appendChild(printFrame);
-
-                //         printFrame.onload = function() {
-                //             printFrame.contentWindow.focus();
-                //             printFrame.contentWindow.print();
-                //             setTimeout(() => { location.reload(); }, 1000);
-                //         };
-                //     } else {
-                //         Swal.fire('បរាជ័យ', res.message || 'មានបញ្ហាក្នុងការរក្សាទុក', 'error');
-                //         $('#confirm-payment').prop('disabled', false).text('✔️ បង់ប្រាក់ & បោះពុម្ព');
-                //     }
-                // },
                 success: function(res) {
                     if (res.success) {
                         localStorage.removeItem('hold_pos_' + currentTableId);
 
                         let printFrame = document.createElement('iframe');
                         printFrame.style.display = 'none';
+                        // ប្រាកដថា res.order_id មានតម្លៃមកពី Controller
                         printFrame.src = '/order/invoice/' + res.order_id;
                         document.body.appendChild(printFrame);
 
                         printFrame.onload = function() {
-                            // បន្ថែម setTimeout ដើម្បីរង់ចាំឱ្យរូបភាព QR រៀបចំខ្លួនរួចរាល់
                             setTimeout(() => {
                                 try {
                                     printFrame.contentWindow.focus();
                                     printFrame.contentWindow.print();
 
-                                    // បន្ទាប់ពីចុច Print រួច (មិនថា Cancel ឬ OK) ទើប Refresh ទំព័រ
                                     setTimeout(() => {
-                                        // លុប iframe ចោលវិញដើម្បីកុំឱ្យធ្ងន់ Browser
                                         document.body.removeChild(printFrame);
                                         location.reload();
-                                    }, 3000);
+                                    }, 2000);
                                 } catch (e) {
                                     console.error("Printing failed:", e);
                                     location.reload();
                                 }
-                            }, 800); // រង់ចាំ 0.8 វិនាទី (អាចដំឡើងដល់ 1000 បើ Internet យឺត)
+                            }, 800);
                         };
                     } else {
                         Swal.fire('បរាជ័យ', res.message || 'មានបញ្ហាក្នុងការរក្សាទុក', 'error');
@@ -1603,7 +1650,10 @@
                     }
                 },
                 error: function(xhr) {
-                    Swal.fire('បរាជ័យ', 'មានបញ្ហាបច្ចេកទេស (Server Error)', 'error');
+                    // បើចេញ Error 405 វានឹងលោតចូលមកទីនេះ
+                    let errorMsg = xhr.responseJSON ? xhr.responseJSON.message :
+                        'មានបញ្ហាបច្ចេកទេស (Server Error)';
+                    Swal.fire('បរាជ័យ', errorMsg, 'error');
                     $('#confirm-payment').prop('disabled', false).text('✔️ បង់ប្រាក់ & បោះពុម្ព');
                 }
             });

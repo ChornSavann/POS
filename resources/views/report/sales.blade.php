@@ -132,13 +132,11 @@
                 box-shadow: none !important;
             }
         }
-
-
     </style>
 @endsection
 
 @section('content')
-    <div class="content-wrapper mt-4">
+    <div class="content-wrapper mt-2">
         <div class="container-fluid px-4">
 
             {{-- Header Section --}}
@@ -277,7 +275,8 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="salesTable">
 
-                        <thead class="text-uppercase small fw-bold text-muted bg-dark border-bottom">    <tr style="font-family: 'Kantumruy Pro', 'Siemreap', sans-serif; font-size: 0.85rem;">
+                        <thead class="text-uppercase small fw-bold text-muted bg-dark border-bottom">
+                            <tr style="font-family: 'Kantumruy Pro', 'Siemreap', sans-serif; font-size: 0.85rem;">
                                 <th class="ps-4 py-3 align-middle cursor-pointer" style="width: 15%;">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <span>លេខវិក្កយបត្រ</span>
@@ -412,7 +411,7 @@
         </div>
     </div>
 @endsection
-
+{{--
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -549,6 +548,177 @@
             let table = document.getElementById("salesTable");
             let html = table.outerHTML;
             window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));
+        }
+    </script>
+@endpush --}}
+
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js">
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // 1. Raw data from PHP
+            const salesData = {!! $chartData !!};
+            const paymentData = {!! $paymentData !!};
+
+            // 2. Shared helpers
+            const fmt = n => '$' + Number(n).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            const fmtK = n => '$' + (Math.round(n / 1000)) + 'k';
+            const PAY_COLORS = ['#4361ee', '#06d6a0', '#ff9f43', '#f72585', '#7209b7'];
+
+            // 3. Revenue Line Chart
+            const dailyCtx = document.getElementById('dailyChart');
+            if (dailyCtx) {
+                new Chart(dailyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: salesData.map(d => d.date),
+                        datasets: [{
+                            label: 'Total Revenue',
+                            data: salesData.map(d => d.total),
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67, 97, 238, 0.08)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2.5,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: '#1e1b4b',
+                                callbacks: {
+                                    label: ctx => ' Revenue: ' + fmt(ctx.parsed.y)
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            } // Line charts look messy with labels
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: v => fmtK(v)
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 4. Payment Method Doughnut Chart
+            const paymentCtx = document.getElementById('paymentMethodChart');
+            if (paymentCtx) {
+                const totalPay = paymentData.reduce((sum, d) => sum + Number(d.total), 0);
+
+                // Update HTML Legend
+                const legendEl = document.getElementById('paymentLegend');
+                if (legendEl && totalPay > 0) {
+                    legendEl.innerHTML = paymentData.map((d, i) => {
+                        const pct = ((d.total / totalPay) * 100).toFixed(1);
+                        return `
+                            <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                                <span style="width:10px;height:10px;border-radius:50%;background:${PAY_COLORS[i]}"></span>
+                                <span>${d.name}: <strong>${pct}%</strong></span>
+                            </div>`;
+                    }).join('');
+                }
+
+                new Chart(paymentCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: paymentData.map(d => d.name),
+                        datasets: [{
+                            data: paymentData.map(d => d.total),
+                            backgroundColor: PAY_COLORS,
+                            borderWidth: 4,
+                            borderRadius: 6,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold'
+                                },
+                                formatter: (val) => {
+                                    const pct = Math.round((val / totalPay) * 100);
+                                    return pct > 5 ? pct + '%' : ''; // Only show if > 5%
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels] // Registering plugin locally
+                });
+            }
+
+            // 5. Date Filter Submit
+            $('#quickDate').on('change', function() {
+                const mode = $(this).val();
+                if (!mode) return;
+
+                let start = new Date();
+                let end = new Date();
+
+                if (mode === 'yesterday') {
+                    start.setDate(start.getDate() - 1);
+                    end.setDate(end.getDate() - 1);
+                } else if (mode === 'thisMonth') {
+                    start = new Date(start.getFullYear(), start.getMonth(), 1);
+                }
+
+                $('input[name="start_date"]').val(start.toISOString().split('T')[0]);
+                $('input[name="end_date"]').val(end.toISOString().split('T')[0]);
+                $(this).closest('form').submit();
+            });
+        });
+
+        // Global functions for buttons
+        function printReport() {
+            window.print();
+        }
+
+        function exportToExcel() {
+            let table = document.getElementById("salesTable");
+            window.open('data:application/vnd.ms-excel,' + encodeURIComponent(table.outerHTML));
         }
     </script>
 @endpush

@@ -7,6 +7,15 @@ use App\Models\Stores;
 use App\Service\IService\IOrderService;
 use App\Repository\IRepository\IOrderRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use KHQR\Helpers\KHQRData;
+use KHQR\BakongKHQR;
+use KHQR\Models\IndividualInfo;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+use KHQR\Helpers\Utils;  // ✅ ត្រូវ
 use SimpleSoftwareIO\QrCode\Facades\QrCode; // សម្រាប់បង្កើតរូបភាព QR
 class OrderService implements IOrderService {
     protected $orderRepo;
@@ -265,6 +274,7 @@ class OrderService implements IOrderService {
     //         'exchangeRate' => 4100,
     //     ]);
     // }
+
     public function getPrintData($id)
     {
         $order = $this->orderRepo->getOrderForPrint($id);
@@ -306,51 +316,95 @@ class OrderService implements IOrderService {
         ];
     }
 
+    // public function generateKHQR($grandTotal, $exchangeRate = 4100)
+    // {
+    //     $amountInRiel = round($grandTotal * $exchangeRate);
+
+    //     $bakongId = "chorn_savann@bkrt";
+    //     $merchantName = "SAVANN CHORN";
+    //     $city = "Phnom Penh";
+
+    //     $baidTag = "00" . str_pad(strlen($bakongId), 2, '0', STR_PAD_LEFT) . $bakongId;
+    //     $merchantInfo = "30" . str_pad(strlen($baidTag), 2, '0', STR_PAD_LEFT) . $baidTag;
+
+    //     $rawData = "000201010212" . $merchantInfo;
+    //     $rawData .= "520459995303116";
+    //     $rawData .= "54" . str_pad(strlen($amountInRiel), 2, '0', STR_PAD_LEFT) . $amountInRiel;
+    //     $rawData .= "5802KH";
+    //     $rawData .= "59" . str_pad(strlen($merchantName), 2, '0', STR_PAD_LEFT) . $merchantName;
+    //     $rawData .= "60" . str_pad(strlen($city), 2, '0', STR_PAD_LEFT) . $city;
+    //     $rawData .= "6304";
+
+    //     $crc = $this->calculateCRC16($rawData);
+    //     $qrRawData = $rawData . $crc;
+
+    //     $qr = null;
+    //     if ($qrRawData) {
+    //         $qr = QrCode::format('svg')
+    //             ->size(120)
+    //             ->color(0, 90, 146)
+    //             ->margin(1)
+    //             ->generate($qrRawData);
+    //     }
+    //     // dd($qrRawData, $crc);
+    //     return [
+    //         'qr' => $qr,
+    //         'md5' => md5($qrRawData)
+    //     ];
+    // }
+
+
     public function generateKHQR($grandTotal, $exchangeRate = 4100)
     {
-        $amountInRiel = round($grandTotal * $exchangeRate);
+            $amountInRiel = intval(round($grandTotal * $exchangeRate));
 
-        $bakongId = "chorn_savann@bkrt";
-        $merchantName = "SAVANN CHORN";
-        $city = "Phnom Penh";
+                $individualInfo = new IndividualInfo(
+                bakongAccountID: 'chorn_savann@bkrt',
+                merchantName: 'SAVANN CHORN',
+                merchantCity: 'Phnom Penh',
+                currency: KHQRData::CURRENCY_KHR,
+                amount: $amountInRiel, // ← static QR មិនមាន expiration
+                // amount: 0,
+            );
 
-        $baidTag = "00" . str_pad(strlen($bakongId), 2, '0', STR_PAD_LEFT) . $bakongId;
-        $merchantInfo = "29" . str_pad(strlen($baidTag), 2, '0', STR_PAD_LEFT) . $baidTag;
-
-        $rawData = "000201010212" . $merchantInfo;
-        $rawData .= "520459995303116";
-        $rawData .= "54" . str_pad(strlen($amountInRiel), 2, '0', STR_PAD_LEFT) . $amountInRiel;
-        $rawData .= "5802KH";
-        $rawData .= "59" . str_pad(strlen($merchantName), 2, '0', STR_PAD_LEFT) . $merchantName;
-        $rawData .= "60" . str_pad(strlen($city), 2, '0', STR_PAD_LEFT) . $city;
-        $rawData .= "6304";
-
-        $crc = $this->calculateCRC16($rawData);
-        $qrRawData = $rawData . $crc;
-
-        $qr = null;
-        if ($qrRawData) {
-            $qr = QrCode::format('svg')
-                ->size(120)
-                ->color(0, 90, 146)
-                ->margin(1)
-                ->generate($qrRawData);
+        $response = BakongKHQR::generateIndividual($individualInfo);
+        // dd($response->data['qr']); // ← បន្ថែម នេះ
+                if ($response->status['code'] !== 0) {
+            throw new \Exception('KHQR Error: ' . $response->status['message']);
         }
 
+        $qrString = $response->data['qr'];
+
+        $qr = QrCode::format('svg')
+            ->size(120)
+            ->color(0, 90, 146)
+            ->margin(1)
+            ->generate($qrString);
+
         return [
-            'qr' => $qr,
-            'md5' => md5($qrRawData)
+            'qr'  => $qr,
+            'md5' => $response->data['md5'],
         ];
     }
 
-    private function calculateCRC16($data) {
-        $crc = 0xFFFF;
-        for ($i = 0; $i < strlen($data); $i++) {
-            $x = (($crc >> 8) ^ ord($data[$i])) & 0xFF;
-            $x ^= $x >> 4;
-            $crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
-        }
-        return strtoupper(str_pad(dechex($crc & 0xFFFF), 4, '0', STR_PAD_LEFT));
-    }
+
+
+
+
+
+
+    // private function calculateCRC16($data) {
+    //     $crc = 0xFFFF;
+    //     for ($i = 0; $i < strlen($data); $i++) {
+    //         $x = (($crc >> 8) ^ ord($data[$i])) & 0xFF;
+    //         $x ^= $x >> 4;
+    //         $crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
+    //     }
+    //     return strtoupper(str_pad(dechex($crc & 0xFFFF), 4, '0', STR_PAD_LEFT));
+    // }
+
+
+
+
 }
 

@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 use App\Service\IService\IOrderService;
 use Illuminate\Http\Request;
 use App\Models\Order;
-
+use App\Service\TelegramService;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
 
     protected $orderService;
+    protected $telegramService;
 
-    public function __construct(IOrderService $orderService) {
+    public function __construct(IOrderService $orderService, TelegramService $telegramService) {
         $this->orderService = $orderService;
+        $this->telegramService = $telegramService;
     }
 
     public function listOrder(Request $request)
@@ -108,9 +111,12 @@ class OrderController extends Controller
                 $result = $bakong->checkTransactionByMD5($request->md5);
 
                 if (isset($result['responseCode']) && $result['responseCode'] == 0) {
-                    // ប្រសិនបើបាគងបញ្ជាក់ថាបានទទួលលុយមែន ទើបបង្កើត Order
-                    // ចំណាំ៖ កុំភ្លេចថែម 'payment_md5' ទៅក្នុង orderService ផង
                     $order = $this->orderService->processCheckOut($request->all());
+                    // ── Telegram ──────────────────────────────────
+                    // $this->telegramService->sendOrderNotification($order, 'KHQR / ABA');
+                   $receivedUSD = (float) $request->input('received_amount', $order->grand_total);
+                    $changeUSD   = $receivedUSD > $order->grand_total ? $receivedUSD - $order->grand_total : 0;
+                    $this->telegramService->sendOrderNotification($order, 'KHQR / ABA', $receivedUSD, $changeUSD);
                     return response()->json([
                         'success' => true,
                         'order_id' => $order->id,
@@ -130,15 +136,42 @@ class OrderController extends Controller
         }
 
         // ៣. ករណីបង់ "លុយសុទ្ធ" (Cash)
-        try {
+       try {
             $order = $this->orderService->processCheckOut($request->all());
+            $paymentInfo = $order->payments()->with('bank')->first();
+            $bankName = $paymentInfo?->bank?->bank_name;
+
+            if (!$bankName) {
+                $method = $paymentInfo?->payment_method ?? 'Cash';
+                // បើ $method ជាលេខ ID ឱ្យបង្ហាញថា 'Cash' ឬ 'បង់តាមធនាគារ' ជំនួសវិញដើម្បីកុំឱ្យអាក្រក់មើល
+                $bankName = is_numeric($method) ? 'Cash' : $method;
+            }
+
+            // ៣. គណនាប្រាក់ទទួលបាន និងប្រាក់អាប់
+            $grandTotal  = (float)$order->grand_total;
+            $receivedUSD = $paymentInfo ? (float)$paymentInfo->paid_amount : $grandTotal;
+            $changeUSD   = ($receivedUSD > $grandTotal) ? round($receivedUSD - $grandTotal, 2) : 0;
+
+            // ៤. បញ្ជូនទៅកាន់ TelegramService
+            $this->telegramService->sendOrderNotification(
+                $order,
+                $bankName,
+                $paymentInfo,
+                $receivedUSD,
+                $changeUSD
+            );
+
             return response()->json([
-                'success' => true,
+                'success'  => true,
                 'order_id' => $order->id,
-                'message' => 'រក្សាទុកការបង់លុយសុទ្ធជោគជ័យ!'
+                'message'  => 'ការបង់ប្រាក់ត្រូវបានរក្សាទុក និងផ្ញើដំណឹងរួចរាល់!'
             ]);
+
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'មានបញ្ហា៖ ' . $e->getMessage()
+            ], 500);
         }
     }
 

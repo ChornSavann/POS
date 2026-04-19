@@ -60,6 +60,7 @@ use App\Service\ProductService;
 use App\Service\ExpenseTypeService;
 use App\Service\IService\IReportService;
 use App\Service\ReportService;
+use App\Service\TelegramService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -231,6 +232,7 @@ class AppServiceProvider extends ServiceProvider
             IReportService::class,
             ReportService::class
         );
+        $this->app->singleton(TelegramService::class);
 
         // SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
     }

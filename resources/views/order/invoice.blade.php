@@ -167,7 +167,7 @@
     </style>
 </head>
 
-<body onload="window.print();">
+<body >
 
     <div class="ticket">
         <div class="header">
@@ -266,7 +266,7 @@
                 @if ($paymentInfo)
                     <tr style="font-size: 9px;">
                         <td>វិធីបង់ប្រាក់:</td>
-                        <td class="text-right bold-text">{{ $paymentInfo->payment_method }}</td>
+                        <td class="text-right bold-text">{{ $paymentInfo->bank->bank_name ?? 'CASH' }}</td>
                     </tr>
                 @endif
             </table>

@@ -247,27 +247,7 @@ class ReportController extends Controller
     //     ));
     // }
 
-    public function profitLossReport(Request $request) {
-        $year = $request->year ?? date('Y');
-        $startDate = $request->startDate ?? "$year-01-01";
-        $endDate = $request->endDate ?? date('Y-m-d');
 
-        // ១. រៀបចំឈ្មោះខែ
-        $months = [];
-        for ($m = 1; $m <= 12; $m++) {
-            $months[$m] = date('M', mktime(0, 0, 0, $m, 1));
-        }
-
-        // ២. ទាញទិន្នន័យតាមរយៈ Service
-        $data = $this->reportService->getProfitLossData($year);
-
-        return view('report.profit_loss', array_merge($data, [
-            'year' => $year,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'months' => $months
-        ]));
-    }
 
     public function productPerformanceReport(Request $request) {
         $startDate = $request->startDate ?? Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -346,4 +326,50 @@ class ReportController extends Controller
         // បញ្ជូនទាំង $reports និង $invoices ទៅកាន់ View
         return view('report.weekly', compact('reports', 'invoices', 'year', 'month', 'day'));
     }
+
+    public function profitLossReport(Request $request) {
+        $year = $request->year ?? date('Y');
+        $startDate = $request->startDate ?? "$year-01-01";
+        $endDate = $request->endDate ?? date('Y-m-d');
+
+        // ១. រៀបចំឈ្មោះខែ
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $months[$m] = date('M', mktime(0, 0, 0, $m, 1));
+        }
+
+        // ២. ទាញទិន្នន័យតាមរយៈ Service
+        $data = $this->reportService->getProfitLossData($year);
+
+        return view('report.profit_loss', array_merge($data, [
+            'year' => $year,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'months' => $months
+        ]));
+    }
+
+
+    public function profitLossReports(Request $request) {
+        $year = $request->year ?? date('Y');
+        $startDate = $request->startDate ?? "$year-01-01";
+        $endDate = $request->endDate ?? date('Y-m-d');
+
+        // ១. រៀបចំឈ្មោះខែ
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $months[$m] = date('M', mktime(0, 0, 0, $m, 1));
+        }
+
+        // ២. ទាញទិន្នន័យតាមរយៈ Service
+        $data = $this->reportService->getProfitLossData($year);
+
+        return view('report.profit', array_merge($data, [
+            'year' => $year,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'months' => $months
+        ]));
+    }
+
 }

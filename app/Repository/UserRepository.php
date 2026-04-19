@@ -18,7 +18,9 @@ class UserRepository implements IUserRepository
 
     public function register(array $data)
     {
-        $data['password'] = Hash::make($data['password']);
+            if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
         return User::create($data);
     }
 
@@ -26,7 +28,7 @@ class UserRepository implements IUserRepository
     {
         return User::create($data); // មិនបាច់ Hash ដោយដៃទេ ព្រោះ Model ធ្វើឱ្យហើយ
     }
-    
+
     public function updateUser($id, array $data)
     {
         $user = User::find($id);
@@ -39,14 +41,15 @@ class UserRepository implements IUserRepository
         $user->update($data);
         return $user;
     }
+
+
     public function deleteUser($id)
     {
         $user = User::find($id);
         if (!$user) {
-            return null;
+            return false;
         }
-        $user->delete();
-        return true;
+        return $user->delete(); // return true បើលុបជោគជ័យ
     }
 
    // UserRepository.php

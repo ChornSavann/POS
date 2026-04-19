@@ -532,12 +532,29 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <label class="form-label">បញ្ជាក់លេខសម្ងាត់</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
                         <input type="password" name="password_confirmation" id="reg_confirm" class="form-control"
                             placeholder="បញ្ចូលលេខសម្ងាត់ម្ដងទៀត">
+                        <button class="input-group-text bg-transparent" type="button"
+                            onclick="togglePassword('reg_confirm', 'eye_reg2')">
+                            <i class="bi bi-eye-slash" id="eye_reg2"></i>
+                        </button>
+                    </div>
+                </div> --}}
+                <div class="mb-3">
+                    <label class="form-label">បញ្ជាក់លេខសម្ងាត់</label>
+                    <div class="input-group">
+                        {{-- ១. Icon បង្ហាញនៅខាងមុខ --}}
+                        <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+
+                        {{-- ២. Input បញ្ជាក់លេខសម្ងាត់ (ទុកតែមួយបានហើយ) --}}
+                        <input type="password" name="password_confirmation" id="reg_confirm" class="form-control"
+                            placeholder="បញ្ចូលលេខសម្ងាត់ម្ដងទៀត">
+
+                        {{-- ៣. Button បើក/បិទ ភ្នែកមើលលេខសម្ងាត់ --}}
                         <button class="input-group-text bg-transparent" type="button"
                             onclick="togglePassword('reg_confirm', 'eye_reg2')">
                             <i class="bi bi-eye-slash" id="eye_reg2"></i>

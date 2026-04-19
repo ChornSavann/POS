@@ -60,7 +60,7 @@ Route::get('/users/create', [UserController::class, 'create'])->name('users.crea
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
 Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
 Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
-Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 // Route::get('/login', [UserController::class, 'login'])->name('users.login');
 // Route::post('/login', [UserController::class, 'authenticate'])->name('login.post');
 Route::post('/register', [UserController::class, 'register'])->name('register.post');
@@ -239,6 +239,9 @@ Route::prefix('item-expenses')->name('item_expense.')->group(function () {
         // Route សម្រាប់របាយការណ៍ចំណេញ-ខាត (P&L) ដែលបងមានស្រាប់
         Route::get('/profit-loss', [ReportController::class, 'profitLossReport'])
             ->name('profit_loss');
+
+        Route::get('/profit_loss_report', [ReportController::class, 'profitLossReports'])
+            ->name('profit_loss_report');
         // Route សម្រាប់របាយការណ៍កែសម្រួលស្តុក
         Route::get('monthly', [ReportController::class, 'monthlySalesReport'])->name('monthly');
         Route::get('monthly-details/{month}/{year}', [ReportController::class, 'monthlyDetails'])->name('monthly_details');

@@ -68,7 +68,7 @@
                             @forelse($users as $key => $user)
                                 <tr>
                                     <td class="ps-4 text-muted">{{ $key + 1 }}.</td>
-                                 
+
                                     <td>
                                         <div class="d-flex align-items-center">
                                             {{-- បង្ហាញរូបភាព Profile --}}
@@ -142,9 +142,8 @@
                                                 id="delete-form-{{ $user->id }}" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button"
-                                                    class="btn btn-light btn-sm text-danger border delete-confirm"
-                                                    data-id="{{ $user->id }}" title="Delete">
+                                                <button type="button" class="btn btn-light btn-sm text-danger border"
+                                                    onclick="confirmDelete('{{ $user->id }}')" title="Delete">
                                                     <i class="bi bi-trash3-fill"></i>
                                                 </button>
                                             </form>
@@ -207,44 +206,37 @@
     </style>
 @endsection
 @push('scripts')
-    <script>
-        $(document).ready(function() {
-            // ប្រើ Event Delegation ដើម្បីឱ្យវាដើរទោះបីជា Table ត្រូវបាន Reload ដោយ Ajax ក៏ដោយ
-            $(document).on('click', '.delete-confirm', function(e) {
-                e.preventDefault();
-
-                let id = $(this).data('id');
-                let form = $('#delete-form-' + id);
-
-                Swal.fire({
-                    title: 'តើអ្នកប្រាកដទេ?',
-                    text: "ទិន្នន័យនេះនឹងត្រូវលុប ហើយមិនអាចទាញយកមកវិញបានឡើយ!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33', // ពណ៌ក្រហមសម្រាប់ប៊ូតុងលុប
-                    cancelButtonColor: '#6c757d', // ពណ៌ប្រផេះសម្រាប់ប៊ូតុងបោះបង់
-                    confirmButtonText: '<i class="bi bi-trash"></i> លុបចេញ',
-                    cancelButtonText: 'បោះបង់',
-                    reverseButtons: true, // ដាក់ប៊ូតុងបោះបង់នៅខាងឆ្វេង
-                    customClass: {
-                        confirmButton: 'btn btn-danger px-4',
-                        cancelButton: 'btn btn-light px-4 border'
-                    },
-                    buttonsStyling: false // ប្រើ Class របស់ Bootstrap ជំនួសវិញ
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // បង្ហាញ Loading ពេលកំពុង Submit
-                        Swal.fire({
-                            title: 'កំពុងលុប...',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        form.submit();
-                    }
-                });
+   <script>
+function confirmDelete(id) {
+    Swal.fire({
+        title: 'តើអ្នកប្រាកដទេ?',
+        text: "ទិន្នន័យនេះនឹងត្រូវលុប ហើយមិនអាចទាញយកមកវិញបានឡើយ!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-trash"></i> លុបចេញ',
+        cancelButtonText: 'បោះបង់',
+        reverseButtons: true,
+        customClass: {
+            confirmButton: 'btn btn-danger px-4',
+            cancelButton: 'btn btn-light px-4 border'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // បង្ហាញ Loading
+            Swal.fire({
+                title: 'កំពុងលុប...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
-        });
-    </script>
+            // បញ្ជាឱ្យ Form Submit តាមរយៈ ID
+            document.getElementById('delete-form-' + id).submit();
+        }
+    });
+}
+</script>
 @endpush

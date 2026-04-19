@@ -8,6 +8,7 @@ use App\Models\StockMovement;
 use App\Repository\IRepository\IRepostRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 class RepostRepository implements IRepostRepository{
 
     public function getPurchases($filters, $perPage = 20)
@@ -128,41 +129,7 @@ class RepostRepository implements IRepostRepository{
             ->whereBetween('order_date', [$startDate, $endDate]);
     }
 
-    public function getSalesByCategory($year) {
-        return DB::table('categories')
-            ->join('products', 'categories.id', '=', 'products.category_id')
-            ->join('order_items', 'products.id', '=', 'order_items.product_id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->selectRaw('categories.name as cat_name, MONTH(orders.order_date) as month, SUM(order_items.qty * order_items.price) as total')
-            ->whereYear('orders.order_date', $year)
-            ->where('orders.is_completed', 1)
-            ->groupBy('cat_name', 'month')
-            ->get();
-    }
 
-    public function getMonthlySales($year) {
-        return DB::table('orders')
-            ->whereYear('order_date', $year)
-            ->where('is_completed', 1)
-            ->selectRaw('MONTH(order_date) as month, SUM(grand_total) as total')
-            ->groupBy('month')->pluck('total', 'month')->toArray();
-    }
-
-    public function getMonthlyCOGS($year) {
-        return DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->whereYear('orders.order_date', $year)
-            ->where('orders.is_completed', 1)
-            ->selectRaw('MONTH(orders.order_date) as month, SUM(order_items.qty * order_items.price) as total')
-            ->groupBy('month')->pluck('total', 'month')->toArray();
-    }
-
-    public function getMonthlyExpenses($year) {
-        return DB::table('expense_types')
-            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
-            ->whereYear('created_at', $year)
-            ->groupBy('month')->pluck('total', 'month')->toArray();
-    }
 
     public function getProductPerformances($startDate, $endDate)
     {
@@ -213,5 +180,108 @@ class RepostRepository implements IRepostRepository{
             ->groupBy('orders.id')
             ->orderBy('orders.order_date', 'desc')
             ->get();
+    }
+
+
+
+
+    //// បន្ថែម Methods ផ្សេងៗទៀតសម្រាប់ RepostRepository នៅទីនេះ
+    public function getSalesByCategory(int $year): Collection
+    {
+        return DB::table('categories')
+            ->join('products', 'categories.id', '=', 'products.category_id')
+            ->join('order_items', 'products.id', '=', 'order_items.product_id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->selectRaw('
+                categories.name   AS cat_name,
+                MONTH(orders.order_date) AS month,
+                SUM(order_items.qty * order_items.price) AS total
+            ')
+            ->whereYear('orders.order_date', $year)
+            ->where('orders.is_completed', 1)
+            ->groupBy('cat_name', 'month')
+            ->orderBy('cat_name')
+            ->orderBy('month')
+            ->get();
+    }
+
+    public function getMonthlySales(int $year): array
+    {
+        return DB::table('orders')
+            ->whereYear('order_date', $year)
+            ->where('is_completed', 1)
+            ->selectRaw('MONTH(order_date) AS month, SUM(grand_total) AS total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+    }
+
+    /**
+     * Monthly COGS = SUM(qty * cost_price)
+     */
+    public function getMonthlyCOGS(int $year): array
+    {
+        return DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->whereYear('orders.order_date', $year)
+            ->where('orders.is_completed', 1)
+            ->selectRaw('
+                MONTH(orders.order_date) AS month,
+                SUM(order_items.qty * products.cost) AS total
+            ')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+    }
+
+    public function getMonthlyExpenses(int $year): array
+    {
+        return DB::table('expense_types')
+            ->whereYear('created_at', $year)
+            ->selectRaw('MONTH(created_at) AS month, SUM(amount) AS total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+    }
+
+    public function getMonthlyPurchaseCost(int $year): array
+    {
+        return DB::table('purchases')
+            ->whereYear('purchase_date', $year)
+            ->where('status', 'received')
+            ->selectRaw('MONTH(purchase_date) AS month, SUM(grand_total) AS total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+    }
+
+    public function getTopProducts(int $year, int $limit = 10): Collection
+    {
+        return DB::table('products')
+            ->join('order_items', 'products.id', '=', 'order_items.product_id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereYear('orders.order_date', $year)
+            ->where('orders.is_completed', 1)
+            ->selectRaw('
+                products.name AS product_name,
+                SUM(order_items.qty) AS total_qty,
+                SUM(order_items.qty * order_items.price) AS total_revenue
+            ')
+            ->groupBy('product_name')
+            ->orderByDesc('total_revenue')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getAvailableYears(): array
+    {
+        return DB::table('orders')
+            ->where('is_completed', 1)
+            ->selectRaw('YEAR(order_date) AS year')
+            ->groupBy('year')
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->toArray();
     }
 }

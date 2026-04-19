@@ -7,6 +7,7 @@ use App\Service\IService\IUserService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class UserService implements IUserService {
@@ -58,25 +59,30 @@ class UserService implements IUserService {
         }
     }
 
+
+
     public function registerUser(array $data)
     {
-        $userData = [
-            'name'      => $data['name'],
-            'email'     => $data['email'],
-            'password'  => $data['password'], // កុំទាន់ Hash នៅទីនេះ
-            'role'      => $data['role'] ?? 'admin',
-            'phone'     => $data['phone'] ?? null,
-            'address'   => $data['address'] ?? null,
-            'is_active' => true,
-        ];
+        DB::beginTransaction();
+        try {
+            // ១. បង្កើត User (បញ្ជាក់៖ ប្រសិនបើក្នុង Repository មាន Hash រួចហើយ បងមិនបាច់ Hash នៅទីនេះទៀតទេ)
+            $user = $this->userRepository->register([
+                'name'      => $data['name'],
+                'email'     => $data['email'],
+                'password'  => $data['password'], // ទុកឱ្យ Repository ជាអ្នក Hash ដើម្បីកុំឱ្យជាន់គ្នា
+                'phone'     => $data['phone'] ?? null,
+                'address'   => $data['address'] ?? null,
+                'is_active' => true,
+            ]);
 
-        $user = $this->userRepository->register($userData);
-
-        if ($user) {
-            Auth::login($user);
+            if (!$user) {
+                throw new Exception("Failed to create user.");
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Registration Error: " . $e->getMessage());
+            throw $e;
         }
-
-        return $user;
     }
 
     public function updateUser($id, array $data)
@@ -113,22 +119,26 @@ class UserService implements IUserService {
         }
     }
 
-    public function deleteUser($id)
+    public function DeleteUser($id)
     {
-        try
-        {
+        try {
+            // ១. រក User សិនដើម្បីលុបរូបភាព
             $user = $this->userRepository->getUserById($id);
-            if ($user)
-            {
-                $imagePath = public_path('Image/users-image/' . $user->profile_picture);
-                if ($user->profile_picture && file_exists($imagePath)) {
-                    unlink($imagePath);
+
+            if ($user) {
+                // ២. លុបរូបភាពចេញពី Folder (បើបងចង់លុបដាច់)
+                if ($user->profile_picture) {
+                    $imagePath = public_path('Image/users-image/' . $user->profile_picture);
+                    if (file_exists($imagePath)) {
+                        unlink($imagePath);
+                    }
                 }
+
                 return $this->userRepository->deleteUser($id);
             }
-            return false;
-        }
-        catch (Exception $e) {
+
+            return false; // រក User មិនឃើញ
+        } catch (\Exception $e) {
             Log::error("Error deleting user ID {$id}: " . $e->getMessage());
             return false;
         }

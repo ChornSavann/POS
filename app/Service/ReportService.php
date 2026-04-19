@@ -6,6 +6,7 @@ use App\Models\Supplier;
 use App\Repository\IRepository\IRepostRepository;
 use App\Service\IService\IReportService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class ReportService implements IReportService
 {
@@ -136,39 +137,39 @@ class ReportService implements IReportService
         ];
     }
 
-    public function getProfitLossData($year)
+    // public function getProfitLossData($year)
+    // {
+    //     // រៀបចំ Sales By Category
+    //     $salesData = $this->reportRepo->getSalesByCategory($year);
+    //     $salesByCategory = $salesData->groupBy('cat_name')->map(function ($items) {
+    //         $monthlyValues = array_fill(1, 12, 0);
+    //         foreach ($items as $item) {
+    //             $monthlyValues[$item->month] = (float)$item->total;
+    //         }
+    //         return $monthlyValues;
+    //     });
+
+    //     $monthlySales = $this->reportRepo->getMonthlySales($year);
+    //     $monthlyCOGS = $this->reportRepo->getMonthlyCOGS($year);
+    //     $monthlyExpenses = $this->reportRepo->getMonthlyExpenses($year);
+
+    //     // បំពេញខែដែលអត់មាន Data
+    //     for ($i = 1; $i <= 12; $i++) {
+    //         $monthlySales[$i] = $monthlySales[$i] ?? 0;
+    //         $monthlyCOGS[$i] = $monthlyCOGS[$i] ?? 0;
+    //         $monthlyExpenses[$i] = $monthlyExpenses[$i] ?? 0;
+    //     }
+
+    //     return [
+    //         'salesByCategory' => $salesByCategory,
+    //         'monthlySales' => $monthlySales,
+    //         'monthlyCOGS' => $monthlyCOGS,
+    //         'monthlyExpenses' => $monthlyExpenses,
+    //     ];
+    // }
+
+    public function getProductPerformanceReport($startDate, $endDate)
     {
-        // រៀបចំ Sales By Category
-        $salesData = $this->reportRepo->getSalesByCategory($year);
-        $salesByCategory = $salesData->groupBy('cat_name')->map(function ($items) {
-            $monthlyValues = array_fill(1, 12, 0);
-            foreach ($items as $item) {
-                $monthlyValues[$item->month] = (float)$item->total;
-            }
-            return $monthlyValues;
-        });
-
-        $monthlySales = $this->reportRepo->getMonthlySales($year);
-        $monthlyCOGS = $this->reportRepo->getMonthlyCOGS($year);
-        $monthlyExpenses = $this->reportRepo->getMonthlyExpenses($year);
-
-        // បំពេញខែដែលអត់មាន Data
-        for ($i = 1; $i <= 12; $i++) {
-            $monthlySales[$i] = $monthlySales[$i] ?? 0;
-            $monthlyCOGS[$i] = $monthlyCOGS[$i] ?? 0;
-            $monthlyExpenses[$i] = $monthlyExpenses[$i] ?? 0;
-        }
-
-        return [
-            'salesByCategory' => $salesByCategory,
-            'monthlySales' => $monthlySales,
-            'monthlyCOGS' => $monthlyCOGS,
-            'monthlyExpenses' => $monthlyExpenses,
-        ];
-    }
-
-   public function getProductPerformanceReport($startDate, $endDate)
-   {
         $data = $this->reportRepo->getProductPerformances($startDate, $endDate);
 
         return [
@@ -215,4 +216,98 @@ class ReportService implements IReportService
             'year'      => $year
         ];
     }
+
+
+
+
+    //// បន្ថែម Methods ផ្សេងៗទៀតសម្រាប់ ReportService នៅទីនេះ
+    public function getProfitLossData(int $year): array
+    {
+        $salesByCategory = $this->buildSalesByCategory($year);
+        $monthlySales    = $this->fillMonths($this->reportRepo->getMonthlySales($year));
+        $monthlyCOGS     = $this->fillMonths($this->reportRepo->getMonthlyCOGS($year));
+        $monthlyExpenses = $this->fillMonths($this->reportRepo->getMonthlyExpenses($year));
+        $monthlyPurchase = $this->fillMonths($this->reportRepo->getMonthlyPurchaseCost($year));
+        $topProducts     = $this->reportRepo->getTopProducts($year);
+
+        $monthlyGrossProfit = $this->calcMonthlyGrossProfit($monthlySales, $monthlyCOGS);
+        $monthlyNetProfit   = $this->calcMonthlyNetProfit($monthlyGrossProfit, $monthlyExpenses);
+
+        return [
+            'year'               => $year,
+            'availableYears'     => $this->reportRepo->getAvailableYears(),
+            'salesByCategory'    => $salesByCategory,
+            'monthlySales'       => $monthlySales,
+            'monthlyCOGS'        => $monthlyCOGS,
+            'monthlyExpenses'    => $monthlyExpenses,
+            'monthlyPurchase'    => $monthlyPurchase,
+            'monthlyGrossProfit' => $monthlyGrossProfit,
+            'monthlyNetProfit'   => $monthlyNetProfit,
+            'topProducts'        => $topProducts,
+            'summary'            => $this->buildSummary(
+                $monthlySales, $monthlyCOGS, $monthlyExpenses, $monthlyNetProfit
+            ),
+        ];
+    }
+
+    private function buildSalesByCategory(int $year): Collection
+    {
+        return $this->reportRepo
+            ->getSalesByCategory($year)
+            ->groupBy('cat_name')
+            ->map(function ($items) {
+                $monthly = array_fill(1, 12, 0.0);
+                foreach ($items as $item) {
+                    $monthly[(int) $item->month] = (float) $item->total;
+                }
+                return $monthly;
+            });
+    }
+
+    private function fillMonths(array $data): array
+    {
+        $result = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $result[$m] = isset($data[$m]) ? (float) $data[$m] : 0.0;
+        }
+        return $result;
+    }
+
+    private function calcMonthlyGrossProfit(array $sales, array $cogs): array
+    {
+        $result = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $result[$m] = round($sales[$m] - $cogs[$m], 2);
+        }
+        return $result;
+    }
+
+    private function calcMonthlyNetProfit(array $grossProfit, array $expenses): array
+    {
+        $result = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $result[$m] = round($grossProfit[$m] - $expenses[$m], 2);
+        }
+        return $result;
+    }
+
+    private function buildSummary(array $sales, array $cogs, array $expenses, array $netProfit): array
+    {
+        $totalSales    = array_sum($sales);
+        $totalCOGS     = array_sum($cogs);
+        $totalExpenses = array_sum($expenses);
+        $totalProfit   = array_sum($netProfit);
+        $grossProfit   = $totalSales - $totalCOGS;
+
+        return [
+            'total_sales'       => $totalSales,
+            'total_cogs'        => $totalCOGS,
+            'total_expenses'    => $totalExpenses,
+            'gross_profit'      => $grossProfit,
+            'net_profit'        => $totalProfit,
+            'gross_margin_pct'  => $totalSales > 0 ? round(($grossProfit / $totalSales) * 100, 1) : 0,
+            'net_margin_pct'    => $totalSales > 0 ? round(($totalProfit / $totalSales) * 100, 1) : 0,
+        ];
+    }
+
 }

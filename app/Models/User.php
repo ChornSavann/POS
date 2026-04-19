@@ -5,11 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;// បន្ថែម Trait សម្រាប់ Role និង Permission
 use App\Models\Role;
 
 class User extends Authenticatable
 {
+     use HasRoles;
+     use SoftDeletes; // បន្ថែម Trait សម្រាប់ Soft Deletes
     use HasFactory, Notifiable;
+
 
     protected $fillable = [
         'name',

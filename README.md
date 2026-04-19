@@ -57,3 +57,52 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+===============//Telegram bot===================
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+
+class TelegramService
+{
+    protected string $token;
+    protected string $chatId;
+
+    public function __construct()
+    {
+        $this->token  = config('services.telegram.bot_token');
+        $this->chatId = config('services.telegram.chat_id');
+    }
+
+    public function sendOrderNotification($order, string $paymentMethod): void
+    {
+        $items = $order->orderItems->map(fn($i) =>
+            "  • {$i->product->name} x{$i->qty} = \${$i->total}"
+        )->join("\n");
+
+        $message = "🧾 *វិក្កយបត្រថ្មី!*\n"
+            . "━━━━━━━━━━━━━━━━\n"
+            . "📋 Invoice: `#{$order->invoice_no}`\n"
+            . "🗓 Date: {$order->order_date}\n"
+            . "🪑 Table: " . ($order->table_id ?: 'N/A') . "\n"
+            . "👤 Customer: " . ($order->customer->name ?? 'Walk-In') . "\n"
+            . "👨‍💼 Cashier: " . ($order->seller->name ?? 'Admin') . "\n"
+            . "━━━━━━━━━━━━━━━━\n"
+            . "🛒 *Items:*\n{$items}\n"
+            . "━━━━━━━━━━━━━━━━\n"
+            . "💵 Sub-Total: \${$order->sub_total}\n"
+            . ($order->discount > 0 ? "🏷 Discount: -\${$order->discount}\n" : '')
+            . "✅ *Grand Total: \${$order->grand_total}*\n"
+            . "💳 Payment: *{$paymentMethod}*";
+
+        Http::post("https://api.telegram.org/bot{$this->token}/sendMessage", [
+            'chat_id'    => $this->chatId,
+            'text'       => $message,
+            'parse_mode' => 'Markdown',
+        ]);
+    }
+}
