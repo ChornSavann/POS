@@ -1,6 +1,8 @@
 <?php
 namespace App\Repository\IRepository;
 
+use App\Models\CashSession;
+
 interface IOrderRepository {
     public function getLastInvoiceNo();
     public function getAllProducts();
@@ -21,5 +23,7 @@ interface IOrderRepository {
     public function getAllOrdersForPrint();
     public function getOrderForInvoice($id);
     public function getShopSetting();
+     public function findActiveSessionByUser(int $userId): ?CashSession;
+
 
 }

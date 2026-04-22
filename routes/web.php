@@ -39,7 +39,7 @@ Route::middleware(['auth'])->group(function ()
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
     // Route ផ្សេងៗដែលគ្រប់គ្នា (Admin/Cashier) អាចចូលបាន
-    Route::get('/pos', [OrderController::class, 'index'])->name('order.index');
+
     Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
     // ... ដាក់ Route ផ្សេងៗទៀតនៅទីនេះ
     // Route::resource('permissions', PermissionController::class);
@@ -155,6 +155,7 @@ Route::delete('/purchase/delete/{id}',[PurchaseController::class,'destroy'])->na
 
 
 //Order
+//  Route::get('/pos', [OrderController::class, 'index'])->name('order.index');
 Route::get('/pos',[OrderController::class,'index'])->name('order.index');
 Route::post('/orders/update-table-status', [OrderController::class, 'updateTableStatus'])->name('orders.update-table-status');
 Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
@@ -165,6 +166,7 @@ Route::post('/orders/pay-debt', [OrderController::class, 'payDebt'])->name('orde
 Route::get('/orders/print/{id}', [OrderController::class, 'printInvoice'])->name('orders.print');
 Route::get('/orders/print-all', [OrderController::class, 'printAll'])->name('orders.printAll');
 // Route::post('/bakong/verify', [OrderController::class, 'veryfitranfer'])->name('bakong.verify');
+Route::post('/orders/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('orders.cancel');
 
 
 // Bank Routes

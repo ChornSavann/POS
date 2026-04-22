@@ -23,4 +23,6 @@ interface IRepostRepository{
     public function getMonthlyPurchaseCost(int $year): array;
     public function getTopProducts(int $year, int $limit = 10): Collection;
     public function getAvailableYears(): array;
+    public function printdata(int $id);
+     public function getFirst();
 }

@@ -5,6 +5,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\StockMovement;
+use App\Models\Stores;
 use App\Repository\IRepository\IRepostRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -44,9 +45,16 @@ class RepostRepository implements IRepostRepository{
         return $query;
     }
 
+    // public function getDailyOrders($date) {
+    //     return Order::with('orderItems')
+    //         ->whereDate('order_date', $date)
+    //         ->get();
+    // }
+
     public function getDailyOrders($date) {
         return Order::with('orderItems')
             ->whereDate('order_date', $date)
+            ->where('is_completed', '!=', 2)
             ->get();
     }
 
@@ -123,12 +131,19 @@ class RepostRepository implements IRepostRepository{
         return $query;
     }
 
+    // public function getOrdersQuery($startDate, $endDate)
+    // {
+    //     return Order::with(['customer', 'payments'])
+    //         ->whereBetween('order_date', [$startDate, $endDate]);
+    // }
     public function getOrdersQuery($startDate, $endDate)
     {
         return Order::with(['customer', 'payments'])
+            // ១. ចម្រោះយកតែ Order ដែលមិនទាន់បោះបង់ (Status មិនមែន 2)
+            ->where('is_completed', '!=', 2)
+            // ២. កំណត់ចន្លោះកាលបរិច្ឆេទ
             ->whereBetween('order_date', [$startDate, $endDate]);
     }
-
 
 
     public function getProductPerformances($startDate, $endDate)
@@ -150,11 +165,28 @@ class RepostRepository implements IRepostRepository{
             ->get();
     }
 
+    // public function getMonthlySalesReport($year)
+    // {
+    //     return DB::table('orders')
+    //         ->whereYear('order_date', $year)
+    //         ->where('is_completed', 1)
+    //         ->select(
+    //             DB::raw('MONTH(order_date) as month'),
+    //             DB::raw('SUM(grand_total) as revenue'),
+    //             DB::raw('COUNT(id) as total_orders')
+    //         )
+    //         ->groupBy('month')
+    //         ->orderBy('month')
+    //         ->get();
+    // }
+
     public function getMonthlySalesReport($year)
     {
         return DB::table('orders')
             ->whereYear('order_date', $year)
-            ->where('is_completed', 1)
+            // ចម្រោះយកតែ Order ដែលលក់បានពិតប្រាកដ (បង់រួច និង ជំពាក់)
+            // ដកចេញតែ Order ដែលត្រូវបាន Cancel (Status = 2)
+            ->where('is_completed', '!=', 2)
             ->select(
                 DB::raw('MONTH(order_date) as month'),
                 DB::raw('SUM(grand_total) as revenue'),
@@ -165,9 +197,25 @@ class RepostRepository implements IRepostRepository{
             ->get();
     }
 
+    // public function getMonthlyInvoiceDetails($month, $year)
+    // {
+    //     return Order::with('Customer')
+    //         ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
+    //         ->select(
+    //             'orders.*',
+    //             DB::raw('COUNT(order_items.id) as total_items_count'),
+    //             DB::raw('SUM(order_items.qty) as total_qty_sum')
+    //         )
+    //         ->whereMonth('orders.order_date', $month)
+    //         ->whereYear('orders.order_date', $year)
+    //         ->where('orders.is_completed', 1)
+    //         ->groupBy('orders.id')
+    //         ->orderBy('orders.order_date', 'desc')
+    //         ->get();
+    // }
     public function getMonthlyInvoiceDetails($month, $year)
     {
-        return Order::with('Customer')
+        return Order::with('customer') // ប្រាកដថាឈ្មោះ Relationship ក្នុង Model គឺអក្សរតូច customer
             ->leftJoin('order_items', 'orders.id', '=', 'order_items.order_id')
             ->select(
                 'orders.*',
@@ -176,12 +224,13 @@ class RepostRepository implements IRepostRepository{
             )
             ->whereMonth('orders.order_date', $month)
             ->whereYear('orders.order_date', $year)
-            ->where('orders.is_completed', 1)
+            // កែប្រែត្រង់នេះ៖ មិនយក Order ដែល Cancel (Status = 2)
+            // វានឹងបង្ហាញទាំងអ្នកបង់រួច (1) និងអ្នកជំពាក់ (0)
+            ->where('orders.is_completed', '!=', 2)
             ->groupBy('orders.id')
             ->orderBy('orders.order_date', 'desc')
             ->get();
     }
-
 
 
 
@@ -205,11 +254,23 @@ class RepostRepository implements IRepostRepository{
             ->get();
     }
 
+    // public function getMonthlySales(int $year): array
+    // {
+    //     return DB::table('orders')
+    //         ->whereYear('order_date', $year)
+    //         ->where('is_completed', 1)
+    //         ->selectRaw('MONTH(order_date) AS month, SUM(grand_total) AS total')
+    //         ->groupBy('month')
+    //         ->pluck('total', 'month')
+    //         ->toArray();
+    // }
     public function getMonthlySales(int $year): array
     {
         return DB::table('orders')
             ->whereYear('order_date', $year)
-            ->where('is_completed', 1)
+            // កែប្រែ៖ យកគ្រប់ស្ថានភាពទាំងអស់ លើកលែងតែការ Cancel (Status 2)
+            // ការធ្វើបែបនេះនឹងបូកបញ្ចូលទាំងវិក្កយបត្របង់រួច និងជំពាក់
+            ->where('is_completed', '!=', 2)
             ->selectRaw('MONTH(order_date) AS month, SUM(grand_total) AS total')
             ->groupBy('month')
             ->pluck('total', 'month')
@@ -283,5 +344,16 @@ class RepostRepository implements IRepostRepository{
             ->orderByDesc('year')
             ->pluck('year')
             ->toArray();
+    }
+
+    public function printdata(int $id):Order
+    {
+         return Order::with(['customer', 'orderItems.product', 'seller'])
+            ->findOrFail($id);
+    }
+
+    public function getFirst(): Stores
+    {
+        return Stores::first();
     }
 }

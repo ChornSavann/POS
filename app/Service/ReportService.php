@@ -7,6 +7,7 @@ use App\Repository\IRepository\IRepostRepository;
 use App\Service\IService\IReportService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class ReportService implements IReportService
 {
@@ -218,8 +219,6 @@ class ReportService implements IReportService
     }
 
 
-
-
     //// បន្ថែម Methods ផ្សេងៗទៀតសម្រាប់ ReportService នៅទីនេះ
     public function getProfitLossData(int $year): array
     {
@@ -309,5 +308,14 @@ class ReportService implements IReportService
             'net_margin_pct'    => $totalSales > 0 ? round(($totalProfit / $totalSales) * 100, 1) : 0,
         ];
     }
-
+    protected const EXCHANGE_RATE = 4100;
+    public function getInvoiceData(int $id): array
+    {
+        return [
+            'order'       => $this->reportRepo->printdata($id),
+            'storee'      => $this->reportRepo->getFirst(),
+            'cashierName' => Auth::user()->name ?? 'Admin',
+            'rate'        => self::EXCHANGE_RATE,
+        ];
+    }
 }

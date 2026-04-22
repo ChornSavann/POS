@@ -42,15 +42,20 @@ class Order extends Model
     }
 
     public function orderItems(): HasMany {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(OrderItem::class,'order_id');
     }
 
     public function payments(): HasMany {
-        return $this->hasMany(OrderPayment::class);
+        return $this->hasMany(OrderPayment::class,'order_id');
     }
 
     public function bank():HasMany{
         return $this->hasMany(Bank::class,'bank_id');
     }
+
+    // App\Models\Order.php
+
+    
+
 
 }

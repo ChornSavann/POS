@@ -1,6 +1,7 @@
 <?php
 namespace App\Service\IService;
 interface IReportService{
+
     public function getPurchaseReportData($filters);
     public function getDailyReportData($date);
     public function getReportDataStockAjustment(array $filters);
@@ -12,4 +13,5 @@ interface IReportService{
     public function getMonthlyPerformance($year);
     public function getMonthlyDetailsData($month, $year);
     public function getProfitLossData(int $year): array;
+    public function getInvoiceData(int $id): array;
 }

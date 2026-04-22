@@ -10,12 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use KHQR\Helpers\KHQRData;
 use KHQR\BakongKHQR;
+use Illuminate\Support\Facades\Auth;
 use KHQR\Models\IndividualInfo;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
-use KHQR\Helpers\Utils;  // ✅ ត្រូវ
 use SimpleSoftwareIO\QrCode\Facades\QrCode; // សម្រាប់បង្កើតរូបភាព QR
 class OrderService implements IOrderService {
     protected $orderRepo;
@@ -24,7 +20,7 @@ class OrderService implements IOrderService {
     }
 
     public function getListOrderData($request) {
-        $pageSize     = $request->get('pageSize', 1000);
+        $pageSize     = $request->get('pageSize', 25);
         $orders       = $this->orderRepo->getAllOrders($pageSize);
         $totalSales   = $this->orderRepo->getTotalSales();
         $totalDebt    = $this->orderRepo->getTotalDebt();
@@ -96,7 +92,17 @@ class OrderService implements IOrderService {
         return 'INV-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 
+    public function getActiveSession(): ?CashSession
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
+        if (!$user) {
+            return null;
+        }
+
+        return $this->orderRepo->findActiveSessionByUser($user->id);
+    }
     public function processCheckOut(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -122,7 +128,8 @@ class OrderService implements IOrderService {
             // កំណត់តម្លៃជំពាក់
             $isCredit = (isset($data['is_credit']) && $data['is_credit'] == 1);
             $debtAmount = $data['debt_amount'] ?? 0;
-            $activeSession = CashSession::where('user_id', auth()->id())->where('status', 'open')->first();
+            // $activeSession = CashSession::where('user_id', auth()->id())->where('status', 'open')->first();
+             $activeSession = $this->getActiveSession();
             // ៣. បង្កើត Order មេ
             $order = $this->orderRepo->createOrder([
                 'invoice_no'     => $invoiceNo,
@@ -280,7 +287,7 @@ class OrderService implements IOrderService {
         $order = $this->orderRepo->getOrderForPrint($id);
         $store = \App\Models\Stores::first();
          $qrData = $this->generateKHQR($order->grand_total);
-        $cashierName = $order->seller->name ?? 'Admin';
+        $cashierName = Auth::user()->name ?? 'Admin';
 
         // ✅ កែមកជា Array ធម្មតា (លុប response()->json ចេញ)
         return [

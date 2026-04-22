@@ -2,6 +2,7 @@
 namespace App\Repository;
 
 use App\Models\Bank;
+use App\Models\CashSession;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Customer;
@@ -109,11 +110,14 @@ class OrderRepository implements IOrderRepository {
         return OrderPayment::create($data);
     }
 
+
     public function getAllOrders($pageSize) {
         return Order::with(['customer', 'table'])
-                    ->latest('order_date')
-                    ->paginate($pageSize);
-    }
+            ->where('is_paid', '!=', 2)
+            ->where('is_completed', '!=', 2) // មិនបង្ហាញ Order ដែល Cancel
+            ->latest('order_date')
+            ->paginate($pageSize);
+}
 
     public function getTotalSales() {
         return Order::sum('grand_total');
@@ -143,5 +147,12 @@ class OrderRepository implements IOrderRepository {
 
     public function getShopSetting() {
         return Stores::first(); // ទាញយកជួរដេកទី១ នៃ Setting ហាង
+    }
+
+    public function findActiveSessionByUser(int $userId): ?CashSession
+    {
+        return CashSession::where('user_id', $userId)
+            ->where('status', 'open')
+            ->first();
     }
 }

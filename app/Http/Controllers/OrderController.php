@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Service\TelegramService;
 use Illuminate\Support\Facades\DB;
+use App\Models\Stock;
+use App\Models\StockMovement;
 
 class OrderController extends Controller
 {
@@ -186,5 +188,84 @@ class OrderController extends Controller
             'qr' => $data['qr'],
             'md5' => $data['md5']
         ]);
+    }
+
+    public function cancelOrder($id)
+    {
+        // ១. ទាញយកទិន្នន័យ (Eager Loading)
+        // ប្រាកដថាឈ្មោះក្នុង with() ដូចទៅនឹងឈ្មោះ function ក្នុង Model Order
+        $order = Order::with(['orderItems', 'payments'])->findOrFail($id);
+
+        if ($order->is_completed === 0 || $order->is_completed === '0') {
+            return back()->with('error', 'Order នេះត្រូវបាន Cancel រួចរាល់ហើយ។');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // ២. Update Order (ចំណុចសំខាន់៖ មិនគួរ Update store_id ឬ customer_id ទៅជា 0 ទេ
+            // ទុកវាឱ្យនៅដដែល ដើម្បីដឹងថា Order ហ្នឹងមកពីសាខាណា ឬជារបស់ភ្ញៀវណា គ្រាន់តែប្តូរ status បានហើយ)
+            $order->update([
+                'is_completed'   => 2, // សម្គាល់ថា Order នេះត្រូវបាន Cancel
+                'store_id'       => $order->store_id, // ទុកដដែល
+                'customer_id'    => $order->customer_id, // ទុកដដែល
+                'table_id'       => 0, // បោះតុចេញ
+                'is_paid'        => 2, // សម្គាល់ថា Order នេះត្រូវបាន Cancel (អាចប្រើ -1 ឬ 'cancelled' ជាដើម)
+                'debt_amount'    => 0,
+                'sub_total'      => 0,
+                'grand_total'    => 0,
+                'total_discount' => 0,
+                'note'           => $order->note . " | Cancelled on " . now()->format('Y-m-d H:i:s'),
+            ]);
+
+            // ៣. Update Payments
+            foreach ($order->payments as $payment) {
+                $payment->update([
+                    'paid_dollar'    => 0,
+                    'paid_riel'      => 0,
+                    'paid_amount'    => 0,
+                    'payment_status' => 'refunded',
+                    'note'           => 'បង្វិលសងវិញដោយសារការ Cancel Order'
+                ]);
+            }
+
+            // ៤. ប្តូរពី $order->items ទៅជា $order->orderItems ឱ្យដូចខាងលើ
+            foreach ($order->orderItems as $item) {
+                $item->update([
+                    'price'    => 0,
+                    'qty'      => 0,
+                    'discount' => 0,
+                    'total'    => 0
+                ]);
+                // បូកស្តុក
+                $stock = Stock::where('product_id', $item->product_id)->first();
+
+                if ($stock) {
+                    $stock->increment('qty', $item->qty);
+                } else {
+                    Stock::create([
+                        'product_id' => $item->product_id,
+                        'qty'        => $item->qty,
+                        'note'       => 'Stock added from cancelled order #' . $order->invoice_no
+                    ]);
+                }
+
+                // កត់ត្រា Movement
+                StockMovement::create([
+                    'product_id' => $item->product_id,
+                    'type'       => 'IN',
+                    'qty'        => $item->qty,
+                    'reference'  => 'CANCEL-' . $order->invoice_no,
+                    'note'       => 'Re-stocked from Cancelled Order'
+                ]);
+            }
+
+            DB::commit();
+            return back()->with('success', 'ការ Cancel Order និងបូកស្តុកត្រឡប់វិញបានជោគជ័យ!');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'មានបញ្ហា៖ ' . $e->getMessage());
+        }
     }
 }
