@@ -273,7 +273,11 @@
                         <a href="{{ route('bank.edit', $bank->id) }}" class="btn btn-sm btn-outline-light border-0">
                             <i class="bi bi-pencil-fill text-warning"></i>
                         </a>
-                        <button class="btn btn-sm btn-outline-light border-0">
+                        <button class="btn btn-sm btn-outline-light border-0 delete-confirm" data-id="{{ $bank->id }}" data-name="{{ $bank->bank_name }}">
+                             <form id="delete-form-{{ $bank->id }}" action="{{ route('bank.destroy', $bank->id) }}" method="POST" class="d-none">
+                                @csrf
+                                @method('DELETE')
+                            </form>
                             <i class="bi bi-trash-fill text-danger"></i>
                         </button>
                     </div>

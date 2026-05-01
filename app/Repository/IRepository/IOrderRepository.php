@@ -23,7 +23,7 @@ interface IOrderRepository {
     public function getAllOrdersForPrint();
     public function getOrderForInvoice($id);
     public function getShopSetting();
-     public function findActiveSessionByUser(int $userId): ?CashSession;
+    public function findActiveSessionByUser(int $userId): ?CashSession;
 
 
 }
