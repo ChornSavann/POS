@@ -8,7 +8,6 @@
     "require": {
         "php": "^8.2",
         "bacon/bacon-qr-code": "^2.0",
-        "fidele007/bakong-khqr-php": "^1.2",
         "khqr-gateway/bakong-khqr-php": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
