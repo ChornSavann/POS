@@ -10,9 +10,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use KHQR\Helpers\KHQRData;
 use KHQR\BakongKHQR;
+use KHQR\Helpers\Utils;
+use App\Libraries\KHQRTimestampFix;
 use Illuminate\Support\Facades\Auth;
 use KHQR\Models\IndividualInfo;
-use SimpleSoftwareIO\QrCode\Facades\QrCode; // សម្រាប់បង្កើតរូបភាព QR
+// use SimpleSoftwareIO\QrCode\Facades\QrCode; // សម្រាប់បង្កើតរូបភាព QR
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QRGdImagePNG;
 class OrderService implements IOrderService {
     protected $orderRepo;
     public function __construct(IOrderRepository $orderRepo) {
@@ -361,43 +366,81 @@ class OrderService implements IOrderService {
     // }
 
 
-    public function generateKHQR($grandTotal, $exchangeRate = 4100)
-    {
-            $amountInRiel = intval(round($grandTotal * $exchangeRate));
+    // public function generateKHQR($grandTotal, $exchangeRate = 4100)
+    // {
+    //         $amountInRiel = intval(round($grandTotal * $exchangeRate));
 
-                $individualInfo = new IndividualInfo(
-                bakongAccountID: 'chorn_savann@bkrt',
-                merchantName: 'SAVANN CHORN',
-                merchantCity: 'Phnom Penh',
-                currency: KHQRData::CURRENCY_KHR,
-                amount: $amountInRiel, // ← static QR មិនមាន expiration
-                // amount: 0,
-            );
+    //             $individualInfo = new IndividualInfo(
+    //             bakongAccountID: 'chorn_savann@bkrt',
+    //             merchantName: 'SAVANN CHORN',
+    //             merchantCity: 'Phnom Penh',
+    //             currency: KHQRData::CURRENCY_KHR,
+    //             amount: $amountInRiel, // ← static QR មិនមាន expiration
+    //             // amount: 0,
+    //         );
 
-        $response = BakongKHQR::generateIndividual($individualInfo);
-        // dd($response->data['qr']); // ← បន្ថែម នេះ
-                if ($response->status['code'] !== 0) {
-            throw new \Exception('KHQR Error: ' . $response->status['message']);
-        }
+    //     $response = BakongKHQR::generateIndividual($individualInfo);
+    //     // dd($response->data['qr']); // ← បន្ថែម នេះ
+    //             if ($response->status['code'] !== 0) {
+    //         throw new \Exception('KHQR Error: ' . $response->status['message']);
+    //     }
 
-        $qrString = $response->data['qr'];
+    //     $qrString = $response->data['qr'];
 
-        $qr = QrCode::format('svg')
-            ->size(120)
-            ->color(0, 90, 146)
-            ->margin(1)
-            ->generate($qrString);
+    //     $qr = QrCode::format('svg')
+    //         ->size(120)
+    //         ->color(0, 90, 146)
+    //         ->margin(1)
+    //         ->generate($qrString);
 
-        return [
-            'qr'  => $qr,
-            'md5' => $response->data['md5'],
-        ];
+    //     return [
+    //         'qr'  => $qr,
+    //         'md5' => $response->data['md5'],
+    //     ];
+    // }
+
+
+
+
+
+
+public function generateKHQR($grandTotal, $exchangeRate = 4100)
+{
+    $amountInRiel = (int)(round((float)$grandTotal * (float)$exchangeRate));
+
+    $individualInfo = new IndividualInfo(
+       bakongAccountID: 'chorn_savann@bkrt',
+        merchantName: 'SAVANN CHORN',
+        merchantCity: 'Phnom Penh',
+        currency: KHQRData::CURRENCY_KHR,
+        amount: $amountInRiel,
+    );
+
+    $response = BakongKHQR::generateIndividual($individualInfo);
+// $check = BakongKHQR::checkBakongAccount('chorn_savann@bkrt');
+// dd($check->status, $check->data);
+    if ($response->status['code'] !== 0) {
+        throw new \Exception('KHQR Error: ' . $response->status['message']);
     }
 
+    $raw      = $response->data['qr'];
+    $pos      = strpos($raw, '9917');
+    $fixed    = substr($raw, 0, $pos) . str_replace(' ', '', substr($raw, $pos));
+    $noCrc    = substr($fixed, 0, -4);
+    $qrString = $noCrc . \KHQR\Helpers\Utils::crc16($noCrc);
+// dd($qrString);
+    $options = new QROptions;
+    $options->outputType = QRGdImagePNG::class;
+    $options->scale      = 8;
+    $options->imageBase64 = true;
 
+    $qr = (new QRCode($options))->render($qrString);
 
-
-
+    return [
+        'qr'  => $qr,
+        'md5' => md5($qrString),
+    ];
+}
 
 
     // private function calculateCRC16($data) {

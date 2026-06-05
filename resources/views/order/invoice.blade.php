@@ -279,7 +279,9 @@
             @if ($qr)
                 <div style="width: 140px; height: 140px; margin: 0 auto; display: block;">
                     {{-- Render SVG --}}
-                    {!! $qr !!}
+                    {{-- {!! $qr !!} --}}
+                    {{-- <img src="data:image/png;base64,{{ $qr }}" width="300" /> --}}
+                    <img src="{{ $qr }}" width="130" />
                 </div>
 
                 <div

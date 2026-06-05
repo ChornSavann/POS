@@ -273,3 +273,16 @@ Route::prefix('item-expenses')->name('item_expense.')->group(function () {
     });
 
 
+// បន្ថែម route test ថ្មី
+Route::get('/test-qr', function() {
+    $qrString = '00020101021229180014jonhsmith@nbcq520459995303116540750000.05802KH5910Jonh Smith6010Phnom Penh62150211855123456789917001316257134678276304A96B';
+
+    $options = new \chillerlan\QRCode\QROptions;
+    $options->outputType = \chillerlan\QRCode\Output\QRGdImagePNG::class;
+    $options->scale = 8;
+    $options->imageBase64 = true;
+
+    $qr = (new \chillerlan\QRCode\QRCode($options))->render($qrString);
+
+    return '<img src="' . $qr . '" width="300">';
+});
