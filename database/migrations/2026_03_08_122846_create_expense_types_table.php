@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0); // ប្រើ decimal សម្រាប់តម្លៃលុយ
             $table->foreignId('expens_id')->constrained('item_expens')->onDelete('cascade');
             $table->foreignId('bank_id')->constrained('banks')->onDelete('cascade');
-            $table->string('status')->default('active')->change();
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }

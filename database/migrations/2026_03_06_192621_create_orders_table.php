@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->dateTime('order_date');
             $table->string('invoice_no')->unique();
-            $table->foreignId('table_id')->nullable()->constrained('restaurant_tables');
+            $table->foreignId('table_id')->nullable()->constrained('tables');
             $table->foreignId('customer_id')->nullable()->constrained('customers');
 
             $table->decimal('sub_total', 18, 2);
