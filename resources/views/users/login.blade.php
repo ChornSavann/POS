@@ -485,13 +485,13 @@
         </div>
 
         <div class="form-section register-section">
+           
             <div class="brand-logo"><i class="bi bi-person-plus-fill"></i> បង្កើតគណនី</div>
             <h2>ចុះឈ្មោះថ្មី</h2>
             <p class="mb-3 text-muted small">បំពេញព័ត៌មានខាងក្រោមដើម្បីចាប់ផ្ដើមប្រើប្រាស់។</p>
 
             <form action="{{ route('register.post') }}" method="POST">
                 @csrf
-
                 <div class="mb-2">
                     <label class="form-label">ឈ្មោះពេញ</label>
                     <div class="input-group @error('name') has-error @enderror">
