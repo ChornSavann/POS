@@ -42,4 +42,5 @@ EXPOSE 80
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan migrate --force && \
-    nginx -g 'daemon off;' & php-fpm
+    php-fpm -D && \
+    nginx -g 'daemon off;'
