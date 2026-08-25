@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Routing\UrlGenerator;
 use App\Repository\IRepository\IUserRepository;
 use App\Repository\UserRepository;
 use App\Service\IService\IUserService;
@@ -240,9 +241,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(UrlGenerator $url): void
     {
         Schema::defaultStringLength(191);
+        if (env('APP_ENV') === 'production') {
+            $url->forceScheme('https');
+        }
         Paginator::useBootstrapFive();
          View::composer('partial.navbar', function ($view) {
             $lowStockData = app(\App\Service\ProductService::class)->getLowStockProducts();
@@ -256,4 +260,6 @@ class AppServiceProvider extends ServiceProvider
             $view->with('store', \App\Models\Stores::first());
         });
     }
+
+   
 }
