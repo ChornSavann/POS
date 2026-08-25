@@ -40,7 +40,7 @@ EXPOSE 80
 
 # Script សម្រាប់ Start Nginx និង PHP-FPM ព្រមទាំង Run Migration
 CMD php artisan config:cache && \
-    php artisan route:cache && \
     php artisan migrate --force && \
+    php artisan route:cache && \
     php-fpm -D && \
     nginx -g 'daemon off;'
