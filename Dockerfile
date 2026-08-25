@@ -38,9 +38,7 @@ COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 80
 
-# Script សម្រាប់ Start Nginx និង PHP-FPM ព្រមទាំង Run Migration
-CMD php artisan config:cache && \
-    php artisan migrate --force && \
-    php artisan route:cache && \
+# Script សម្រាប់ Start Nginx និង PHP-FPM ព្រមទាំង Run Migration (ដោយមិនធ្វើ Config Cache មុន)
+CMD php artisan migrate --force && \
     php-fpm -D && \
     nginx -g 'daemon off;'
