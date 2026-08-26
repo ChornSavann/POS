@@ -8,6 +8,7 @@ use App\Models\Stock;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
+
 class PurchaseService implements IPurchaseService {
     protected $purchaseRepo;
 
@@ -22,6 +23,7 @@ class PurchaseService implements IPurchaseService {
     public function getById($id) {
         return $this->purchaseRepo->find($id);
     }
+
     public function createPurchase(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -34,6 +36,7 @@ class PurchaseService implements IPurchaseService {
                 'store_id'      => $data['store_id'],
                 'seller_id'     => $data['seller_id'],
                 'status'        => $data['status'],
+                'user_id'       =>auth()->id(),
                 'grand_total'   => $data['grand_total'],
                 'note'          => $data['note'] ?? null,
             ]);

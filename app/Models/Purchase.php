@@ -14,6 +14,7 @@ class Purchase extends Model
         'store_id',
         'seller_id',
         'status',
+        'user_id',
         'note',
         'grand_total'
     ];
@@ -38,5 +39,10 @@ class Purchase extends Model
     {
         // ប្រាប់ Laravel ថា seller_id គឺសំដៅលើ ID ក្នុងតារាង Users
         return $this->belongsTo(User::class, 'seller_id');
+    }
+    public function user_id()
+    {
+        // ប្រាប់ Laravel ថា seller_id គឺសំដៅលើ ID ក្នុងតារាង Users
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -64,10 +64,25 @@ class PurchaseController extends Controller
         return view('purchase.create', compact('suppliers', 'stores', 'sellers', 'products'));
     }
 
+    // public function store(PurchaseRequest $request)
+    // {
+    //     $purchase = $this->purchaseService->createPurchase($request->validated());
+    //     return response()->json(['success' => true, 'data' => $purchase]);
+    // }
     public function store(PurchaseRequest $request)
     {
-        $purchase = $this->purchaseService->createPurchase($request->validated());
-        return response()->json(['success' => true, 'data' => $purchase]);
+        try {
+            $purchase = $this->purchaseService->createPurchase($request->validated());
+            return response()->json(['success' => true, 'data' => $purchase]);
+        } catch (\Exception $e) {
+            // បង្ហាញ Error ចេញមកក្រៅចំៗ ដើម្បីងាយស្រួលមើល
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+    
+            ], 500);
+        }
     }
 
     public function edit($id)
