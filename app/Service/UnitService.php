@@ -1,6 +1,6 @@
 <?php
 namespace App\Service;
-use App\Service\IService\IunitService;
+use App\Service\IService\IUnitService;
 use App\Repository\IRepository\IUnitsRepository;
 class UnitService implements IUnitService
 {
