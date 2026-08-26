@@ -22,8 +22,7 @@ class UserController extends Controller
 
     public function login()
     {
-        if (Auth::check())
-        {
+        if (Auth::check()) {
             // បើ Login ហើយ ឱ្យទៅកាន់ Dashboard ភ្លាម
             return redirect()->route('dashboard');
         }
@@ -33,8 +32,7 @@ class UserController extends Controller
     public function authenticate(UserRequest $request)
     {
         // ១. ព្យាយាម Login តាមរយៈ Service
-       if ($this->userService->login($request->validated()))
-        {
+        if ($this->userService->login($request->validated())) {
             // ២. បង្កើត Session ថ្មីដើម្បីសុវត្ថិភាព (Security)
             $request->session()->regenerate();
 
@@ -67,7 +65,53 @@ class UserController extends Controller
         ])->onlyInput('email');
     }
 
-    public function register(Request $request)
+    // public function register(Request $request)
+    // {
+    //     // ១. កំណត់លក្ខខណ្ឌ Validation
+    //     $rules = [
+    //         'name'     => 'required|string|max:255',
+    //         'email'    => 'required|email|unique:users,email', // ឆែកកុំឱ្យស្ទួនក្នុង Table users
+    //         'password' => 'required|min:8|confirmed',        // ត្រូវមាន input ឈ្មោះ password_confirmation
+    //         'phone'    => 'nullable|string|max:20',
+    //         'address'  => 'nullable|string|max:500',
+    //         'role_id'  => 'nullable|exists:roles,id',        // បើមានការរើស Role ត្រូវឆែកថាមានក្នុង DB ពិតមែន
+    //     ];
+
+    //     // ២. បង្កើតសារបញ្ជាក់កំហុសជាភាសាខ្មែរ
+    //     $messages = [
+    //         'name.required'      => 'សូមបញ្ចូលឈ្មោះរបស់អ្នក។',
+    //         'email.required'     => 'សូមបញ្ចូលអ៊ីមែល។',
+    //         'email.email'        => 'ទម្រង់អ៊ីមែលមិនត្រឹមត្រូវទេ។',
+    //         'email.unique'       => 'អ៊ីមែលនេះត្រូវបានប្រើប្រាស់រួចហើយ។',
+    //         'password.required'  => 'សូមបញ្ចូលលេខសម្ងាត់។',
+    //         'password.min'       => 'លេខសម្ងាត់ត្រូវមានយ៉ាងតិច ៨ ខ្ទង់។',
+    //         'password.confirmed' => 'ការបញ្ជាក់លេខសម្ងាត់មិនត្រឹមត្រូវទេ។',
+    //     ];
+
+    //     // ៣. ធ្វើការផ្ទៀងផ្ទាត់ (បើមិនត្រឹមត្រូវ វានឹង Redirect ទៅវិញដោយស្វ័យប្រវត្តិ)
+    //     $validatedData = $request->validate($rules, $messages);
+
+    //     try {
+    //         // ៤. បញ្ជូនទិន្នន័យដែលបាន Validate រួចទៅកាន់ Service
+    //         $user = $this->userService->registerUser($validatedData);
+
+    //         if ($user) {
+    //             // បងអាចដក dd($user) ចេញបានហើយ បើវាដើរជោគជ័យ
+    //             return redirect()->to('/')
+    //                             ->with('success', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!');
+    //         }
+
+    //     } catch (\Exception $e) {
+    //         // ៥. បើមានបញ្ហាបច្ចេកទេស (ឧទាហរណ៍៖ DB Error)
+    //         return back()->withInput()
+    //                     ->withErrors(['email' => 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage()]);
+    //     }
+
+    //     return back()->withInput()
+    //                 ->with('error', 'មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀត។');
+    // }
+
+    public function register(\Illuminate\Http\Request $request)
     {
         // ១. កំណត់លក្ខខណ្ឌ Validation
         $rules = [
@@ -90,27 +134,37 @@ class UserController extends Controller
             'password.confirmed' => 'ការបញ្ជាក់លេខសម្ងាត់មិនត្រឹមត្រូវទេ។',
         ];
 
-        // ៣. ធ្វើការផ្ទៀងផ្ទាត់ (បើមិនត្រឹមត្រូវ វានឹង Redirect ទៅវិញដោយស្វ័យប្រវត្តិ)
+
         $validatedData = $request->validate($rules, $messages);
 
+        if (!isset($validatedData['store_id'])) {
+            $validatedData['store_id'] = 1; 
+        }
+        if (!isset($validatedData['role_id'])) {
+            $validatedData['role_id'] = 2; // អាចប្តូរលេខ 2 ទៅតាម ID Role ធម្មតាក្នុង DB របស់បង
+        }
+
+    
+
         try {
-            // ៤. បញ្ជូនទិន្នន័យដែលបាន Validate រួចទៅកាន់ Service
+            
             $user = $this->userService->registerUser($validatedData);
 
             if ($user) {
-                // បងអាចដក dd($user) ចេញបានហើយ បើវាដើរជោគជ័យ
-                return redirect()->to('/')
-                                ->with('success', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!');
-            }
+                
+                Auth::login($user);
 
+                return redirect()->to('/')
+                    ->with('success', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!');
+            }
         } catch (\Exception $e) {
-            // ៥. បើមានបញ្ហាបច្ចេកទេស (ឧទាហរណ៍៖ DB Error)
+            // ៥. បើមានបញ្ហាបច្គេកទេស (បង្ហាញសារ Error មកលើអេក្រង់ដើម្បីឱ្យយើងដឹងថាទាក់ត្រង់ណា)
             return back()->withInput()
-                        ->withErrors(['email' => 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage()]);
+                ->withErrors(['email' => 'មានបញ្ហាបច្ចេកទេស Database៖ ' . $e->getMessage()]);
         }
 
         return back()->withInput()
-                    ->with('error', 'មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀត។');
+            ->with('error', 'មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀត។');
     }
 
 
@@ -130,9 +184,8 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles=DB::table('roles')->get();
-        return view('users.create',compact('roles'));
-
+        $roles = DB::table('roles')->get();
+        return view('users.create', compact('roles'));
     }
 
     public function store(UserRequest $request)
@@ -150,7 +203,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = $this->userService->getUserById($id);
-            $roles=DB::table('roles')->get();
+        $roles = DB::table('roles')->get();
         if (!$user) {
             return redirect()->route('users.index')->with('error', 'User not found.');
         }
@@ -174,21 +227,18 @@ class UserController extends Controller
     {
         try {
             $deleted = $this->userService->DeleteUser($id);
-        // dd($deleted);
+            // dd($deleted);
             if ($deleted) {
                 return redirect()->route('users.index')
-                                ->with('success', 'លុបអ្នកប្រើប្រាស់បានជោគជ័យ!');
+                    ->with('success', 'លុបអ្នកប្រើប្រាស់បានជោគជ័យ!');
             }
 
             return redirect()->route('users.index')
-                            ->with('error', 'រកមិនឃើញអ្នកប្រើប្រាស់ ឬមិនអាចលុបបានឡើយ!');
-
+                ->with('error', 'រកមិនឃើញអ្នកប្រើប្រាស់ ឬមិនអាចលុបបានឡើយ!');
         } catch (\Exception $e) {
             Log::error("Delete User Error ID {$id}: " . $e->getMessage());
             return redirect()->route('users.index')
-                            ->with('error', 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage());
+                ->with('error', 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage());
         }
     }
-
-
 }
