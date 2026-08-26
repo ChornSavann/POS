@@ -243,6 +243,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url): void
     {
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         Schema::defaultStringLength(191);
         if (env('APP_ENV') === 'production') {
             $url->forceScheme('https');
