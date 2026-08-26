@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
@@ -34,6 +34,7 @@ return new class extends Migration
             $table->timestamps(); // បង្កើត created_at និង updated_at
         });
     }
+
 
     /**
      * Reverse the migrations.
