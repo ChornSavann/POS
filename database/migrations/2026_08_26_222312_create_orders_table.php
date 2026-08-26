@@ -9,10 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+   public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            
+            // បន្ថែម cash_session_id ត្រង់នេះតែម្ដង
+            $table->foreignId('cash_session_id')->nullable()->constrained('cash_sessions')->onDelete('set null');
+            
             $table->dateTime('order_date');
             $table->string('invoice_no')->unique();
             $table->foreignId('table_id')->nullable()->constrained('tables');
@@ -28,12 +32,12 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->foreignId('seller_id')->constrained('users');
             $table->foreignId('store_id')->constrained('stores');
-           $table->boolean('is_completed')->default(false);
-            // បង្ហាញថាការបង់ប្រាក់ត្រូវបានបញ្ចប់
+            $table->boolean('is_completed')->default(false);
             $table->boolean('is_paid')->default(false);
-            $table->timestamps(); // បង្កើត created_at និង updated_at
+            $table->timestamps(); 
         });
     }
+
 
 
     /**
