@@ -23,7 +23,6 @@ class UserController extends Controller
     public function login()
     {
         if (Auth::check()) {
-            // បើ Login ហើយ ឱ្យទៅកាន់ Dashboard ភ្លាម
             return redirect()->route('dashboard');
         }
         return view('users.login');
@@ -31,20 +30,18 @@ class UserController extends Controller
 
     public function authenticate(UserRequest $request)
     {
-        // ១. ព្យាយាម Login តាមរយៈ Service
+
         if ($this->userService->login($request->validated())) {
-            // ២. បង្កើត Session ថ្មីដើម្បីសុវត្ថិភាព (Security)
+
             $request->session()->regenerate();
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            // ប្រសិនបើជា Admin ឱ្យទៅកាន់ Dashboard ធំដើម្បីមើលរបាយការណ៍សរុប
             if ($user->hasRole('admin')) {
                 return redirect()->intended('/dashboard');
             }
 
-            // ប្រសិនបើជា Cashier (អ្នកកាន់លុយ) ឱ្យទៅកាន់ផ្ទាំងលក់ (POS) តែម្តងដើម្បីភាពរហ័ស
             if ($user->hasRole('cashier')) {
                 return redirect()->intended('/dashboard');
             }
@@ -111,7 +108,7 @@ class UserController extends Controller
     //                 ->with('error', 'មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀត។');
     // }
 
-    public function register(\Illuminate\Http\Request $request)
+    public function register(Request $request)
     {
         // ១. កំណត់លក្ខខណ្ឌ Validation
         $rules = [
@@ -134,39 +131,29 @@ class UserController extends Controller
             'password.confirmed' => 'ការបញ្ជាក់លេខសម្ងាត់មិនត្រឹមត្រូវទេ។',
         ];
 
-
+        // ៣. ធ្វើការផ្ទៀងផ្ទាត់ (បើមិនត្រឹមត្រូវ វានឹង Redirect ទៅវិញដោយស្វ័យប្រវត្តិ)
         $validatedData = $request->validate($rules, $messages);
 
-        if (!isset($validatedData['store_id'])) {
-            $validatedData['store_id'] = 1; 
-        }
-        if (!isset($validatedData['role_id'])) {
-            $validatedData['role_id'] = 2; // អាចប្តូរលេខ 2 ទៅតាម ID Role ធម្មតាក្នុង DB របស់បង
-        }
-
-    
-
         try {
-            
+            // ៤. បញ្ជូនទិន្នន័យដែលបាន Validate រួចទៅកាន់ Service
             $user = $this->userService->registerUser($validatedData);
 
             if ($user) {
-                
-                Auth::login($user);
+                // ធ្វើការ Login ឱ្យ User នេះស្វ័យប្រវត្តិ ដើម្បីការពារបញ្ហា Middleware ទាត់ចេញ
+                auth()->login($user);
 
                 return redirect()->to('/')
                     ->with('success', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!');
             }
         } catch (\Exception $e) {
-            // ៥. បើមានបញ្ហាបច្គេកទេស (បង្ហាញសារ Error មកលើអេក្រង់ដើម្បីឱ្យយើងដឹងថាទាក់ត្រង់ណា)
+            // ៥. បើមានបញ្ហាបច្ចេកទេស (ឧទាហរណ៍៖ DB Error)
             return back()->withInput()
-                ->withErrors(['email' => 'មានបញ្ហាបច្ចេកទេស Database៖ ' . $e->getMessage()]);
+                ->withErrors(['email' => 'មានបញ្ហាបច្ចេកទេស៖ ' . $e->getMessage()]);
         }
 
         return back()->withInput()
             ->with('error', 'មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀត។');
     }
-
 
     public function logout(Request $request)
     {

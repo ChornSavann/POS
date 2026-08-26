@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
-class UserService implements IUserService {
+class UserService implements IUserService
+{
 
     protected $userRepository;
 
@@ -52,7 +53,6 @@ class UserService implements IUserService {
             // ៣. កំណត់ Status លំនាំដើមបើមិនមានបញ្ជូនមក
             $data['is_active'] = $data['is_active'] ?? 1;
             return $this->userRepository->createUser($data);
-
         } catch (Exception $e) {
             Log::error("Error creating user: " . $e->getMessage());
             return null;
@@ -65,11 +65,11 @@ class UserService implements IUserService {
     {
         DB::beginTransaction();
         try {
-            // ១. បង្កើត User (បញ្ជាក់៖ ប្រសិនបើក្នុង Repository មាន Hash រួចហើយ បងមិនបាច់ Hash នៅទីនេះទៀតទេ)
+            // ១. បង្កើត User
             $user = $this->userRepository->register([
                 'name'      => $data['name'],
                 'email'     => $data['email'],
-                'password'  => $data['password'], // ទុកឱ្យ Repository ជាអ្នក Hash ដើម្បីកុំឱ្យជាន់គ្នា
+                'password'  => $data['password'],
                 'phone'     => $data['phone'] ?? null,
                 'address'   => $data['address'] ?? null,
                 'is_active' => true,
@@ -78,6 +78,11 @@ class UserService implements IUserService {
             if (!$user) {
                 throw new Exception("Failed to create user.");
             }
+
+            DB::commit(); // រក្សាទុកទិន្នន័យចូល Database ជាផ្លូវការ
+
+            return $user; // <--- កន្លែងខ្វះនេះហើយ ដែលធ្វើឱ្យវាអត់ return តម្លៃទៅ Controller
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Registration Error: " . $e->getMessage());
@@ -87,8 +92,7 @@ class UserService implements IUserService {
 
     public function updateUser($id, array $data)
     {
-        try
-        {
+        try {
             $user = $this->userRepository->getUserById($id);
             // Logic Password
             if (!empty($data['password'])) {
@@ -112,8 +116,7 @@ class UserService implements IUserService {
             }
 
             return $this->userRepository->updateUser($id, $data);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             Log::error("Error updating user ID {$id}: " . $e->getMessage());
             return null;
         }
