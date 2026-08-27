@@ -19,7 +19,7 @@ class BankRequest extends FormRequest
             'bank_name'       => 'required|string|max:255',
             'account_name'    => 'required|string|max:255',
             'account_number'  => 'required|string|unique:banks,account_number,' . $this->route('id'),
-            'opening_balance' => 'nullable|numeric|min:0',
+            'current_balance' => 'nullable|numeric|min:0',
             'currency'        => 'required|string|max:10',
             'is_active'       => 'nullable|boolean',
         ];

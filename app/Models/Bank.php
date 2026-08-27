@@ -13,6 +13,7 @@ class Bank extends Model
         'account_name',
         'account_number',
         'currency',
+        'current_balance',
         'note',
         'is_active',
     ];

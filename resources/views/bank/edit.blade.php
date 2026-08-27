@@ -167,10 +167,10 @@
                     {{-- សមតុល្យដើមគ្រា --}}
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">សមតុល្យដើមគ្រា (Opening Balance)</label>
-                        <input type="number" step="0.01" min="0" name="opening_balance"
-                               class="form-control @error('opening_balance') is-invalid @enderror"
-                               value="{{ old('opening_balance', $bank->opening_balance) }}">
-                        @error('opening_balance')
+                        <input type="number" step="0.01" min="0" name="current_balance"
+                               class="form-control @error('current_balance') is-invalid @enderror"
+                               value="{{ old('current_balance', $bank->current_balance) }}">
+                        @error('current_balance')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>

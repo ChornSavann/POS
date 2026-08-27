@@ -108,6 +108,7 @@ class OrderService implements IOrderService {
 
         return $this->orderRepo->findActiveSessionByUser($user->id);
     }
+    
     public function processCheckOut(array $data)
     {
         return DB::transaction(function () use ($data) {

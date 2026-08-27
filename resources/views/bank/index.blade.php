@@ -257,7 +257,7 @@
                 <td class="fw-bold">{{ $bank->bank_name }}</td>
                 <td>{{ $bank->account_name }}</td>
                 <td class="text-info">{{ $bank->account_number }}</td>
-                <td>{{ number_format($bank->opening_balance, 2) }}</td>
+                <td>{{ number_format($bank->current_balance, 2) }}</td>
                 <td class="text-center">
                     <span class="badge bg-secondary">{{ $bank->currency }}</span>
                 </td>

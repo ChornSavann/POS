@@ -222,7 +222,7 @@
                         <div class="input-group">
                             <input type="number" step="0.01" min="0" name="opening_balance"
                                    class="form-control @error('opening_balance') is-invalid @enderror"
-                                   value="{{ old('opening_balance', $bank->opening_balance ?? '0.00') }}">
+                                   value="{{ old('current_balance', $bank->current_balance ?? '0.00') }}">
                         </div>
                         @error('opening_balance')
                             <small class="text-danger mt-1 d-block">{{ $message }}</small>
