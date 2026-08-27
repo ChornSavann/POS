@@ -220,8 +220,8 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">សមតុល្យដើមគ្រា</label>
                         <div class="input-group">
-                            <input type="number" step="0.01" min="0" name="opening_balance"
-                                   class="form-control @error('opening_balance') is-invalid @enderror"
+                            <input type="number" step="0.01" min="0" name="current_balance"
+                                   class="form-control @error('current_balance') is-invalid @enderror"
                                    value="{{ old('current_balance', $bank->current_balance ?? '0.00') }}">
                         </div>
                         @error('opening_balance')
