@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Request\BankRequest;
+use App\Request\BanKRequest;
 use App\Service\IService\IBankService; // ✅ correct spelling
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class BankController extends Controller
 {
@@ -15,7 +16,7 @@ class BankController extends Controller
         $this->bankService = $bankService;
     }
 
-    public function index(Request $request)
+    public function index(BankRequest $request)
     {
         $banks = $this->bankService->getAllBank($request);
 

@@ -4,7 +4,7 @@ namespace App\Request;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class BankRequest extends FormRequest
+class BanKRequest extends FormRequest
 {
 
     public function authorize(): bool
