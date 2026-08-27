@@ -297,6 +297,21 @@
                                 <p>Daily Reports</p>
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('cash-session.create') }}"
+                                class="nav-link {{ Request::is('cash-session*') ? 'active' : '' }} bg-danger-soft">
+                                <i class="nav-icon fas fa-cash-register text-danger"></i>
+                                <p class="text-danger fw-bold">Close Register</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('reports.cashSessions') }}"
+                                class="nav-link {{ Request::is('reports/cash-sessions*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-history text-info"></i>
+                                <p>Cash Session Report</p>
+                            </a>
+                        </li>
                         @if (auth()->user()->hasRole('admin'))
                             <li class="nav-item">
                                 <a href="{{ route('reports.weekly', ['year' => date('Y')]) }}"
@@ -372,6 +387,7 @@
                                     <p>Cash Session Report</p>
                                 </a>
                             </li>
+
                             <li class="nav-item">
                                 <a href="{{ route('reports.profit_loss') }}"
                                     class="nav-link {{ Request::is('reports/profit-loss*') ? 'active' : '' }}">
