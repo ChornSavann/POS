@@ -286,7 +286,7 @@
 
                 <div
                     style="margin-top: 8px; font-weight: bold; color: #333; font-size: 11px; text-transform: uppercase;">
-                    {{ $order->seller->name ?? 'CHORN SAVANN' }}
+                   {{ $cashierName }}
                 </div>
             @else
                 <div style="color: red; padding: 8px; font-size: 11px; border: 1px dashed red;">

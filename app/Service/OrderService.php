@@ -153,7 +153,7 @@ class OrderService implements IOrderService {
                 'is_completed'   => true,
                 'is_paid'        => ($debtAmount <= 0),
                 'note'           => $data['note'] ?? null,
-                'seller_id'      => $data['seller_id'] ?? 1,
+                'seller_id'      => $data['user_id'] ?? 1,
                 'store_id'       => 1,
             ]);
 

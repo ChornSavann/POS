@@ -62,7 +62,7 @@ class UserController extends Controller
         ])->onlyInput('email');
     }
 
-   
+
 
     public function register(Request $request)
     {
@@ -96,8 +96,7 @@ class UserController extends Controller
 
             if ($user) {
                 // ធ្វើការ Login ឱ្យ User នេះស្វ័យប្រវត្តិ ដើម្បីការពារបញ្ហា Middleware ទាត់ចេញ
-                auth()->login($user);
-
+                Auth::login($user);
                 return redirect()->to('/')
                     ->with('success', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!');
             }
